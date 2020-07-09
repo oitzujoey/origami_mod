@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/q_shared.h"
 #include "bg_public.h"
 #include "bg_local.h"
+#include "g_local.h"
 
 pmove_t		*pm;
 pml_t		pml;
@@ -38,17 +39,20 @@ float	pm_wadeScale = 0.70f;
 
 const float	pm_swimFastScale = 5.0f;
 
-float	pm_accelerate = 10.0f;
-float	pm_airaccelerate = 1.0f;
+// float	pm_accelerate = 10.0f;
+// float	pm_airaccelerate = 1.0f;
 float	pm_wateraccelerate = 4.0f;
 float	pm_flyaccelerate = 8.0f;
 
-float	pm_friction = 6.0f;
+// float	pm_friction = 6.0f;
 float	pm_waterfriction = 1.0f;
 float	pm_flightfriction = 3.0f;
 float	pm_spectatorfriction = 5.0f;
 
 int		c_pmove = 0;
+
+float crouch_timer;
+float jump_timer;
 
 extern	vmCvar_t	cg_enableQ;		// leilei - map changes player/weapons scale (for q1 adaptations)
 /*
@@ -186,6 +190,10 @@ static void PM_Friction( void )
 	float	*vel;
 	float	speed, newspeed, control;
 	float	drop;
+	float	duckFriction = 1.0f;
+
+	if ((pm->ps->pm_flags & PMF_DUCKED) || (crouch_timer > 0))
+		duckFriction = g_crouchfriction.value;
 
 	vel = pm->ps->velocity;
 
@@ -210,14 +218,14 @@ static void PM_Friction( void )
 			// if getting knocked back, no friction
 			if ( ! (pm->ps->pm_flags & PMF_TIME_KNOCKBACK) ) {
 				control = speed < pm_stopspeed ? pm_stopspeed : speed;
-				drop += control*pm_friction*pml.frametime;
+				drop += control*g_friction.value*pml.frametime*duckFriction;
 			}
 		}
 	}
 
 	// apply water friction even if just wading
 	if ( pm->waterlevel ) {
-		drop += speed*pm_waterfriction*pm->waterlevel*pml.frametime;
+		drop += speed*pm_waterfriction*pm->waterlevel*pml.frametime*duckFriction;
 	}
 
 	// apply flying friction
@@ -239,6 +247,60 @@ static void PM_Friction( void )
 	vel[0] = vel[0] * newspeed;
 	vel[1] = vel[1] * newspeed;
 	vel[2] = vel[2] * newspeed;
+}
+
+
+/*
+==============
+PM_AirAccelerate
+
+TODO: bunny hoping
+
+Handles user intended acceleration
+==============
+*/
+static void PM_AirAccelerate( vec3_t wishdir, float wishspeed, float accel )
+{
+	if(! (pm->pmove_flags & DF_NO_BUNNY) ) {
+		// q2 style
+		int			i;
+		float		addspeed, accelspeed, currentspeed;
+
+		if (wishspeed > g_wishspeed.value)
+			wishspeed = g_wishspeed.value;
+
+		currentspeed = DotProduct (pm->ps->velocity, wishdir);
+		addspeed = wishspeed - currentspeed;
+		if (addspeed <= 0) {
+			return;
+		}
+		accelspeed = accel*pml.frametime*wishspeed;
+		if (accelspeed > addspeed) {
+			accelspeed = addspeed;
+		}
+
+		for (i=0 ; i<2 ; i++) {
+			pm->ps->velocity[i] += accelspeed*wishdir[i];
+		}
+	}
+	else {
+		// proper way (avoids strafe jump maxspeed bug), but feels bad
+		vec3_t		wishVelocity;
+		vec3_t		pushDir;
+		float		pushLen;
+		float		canPush;
+
+		VectorScale( wishdir, wishspeed, wishVelocity );
+		VectorSubtract( wishVelocity, pm->ps->velocity, pushDir );
+		pushLen = VectorNormalize( pushDir );
+
+		canPush = accel*pml.frametime*wishspeed;
+		if (canPush > pushLen) {
+			canPush = pushLen;
+		}
+
+		VectorMA( pm->ps->velocity, canPush, pushDir, pm->ps->velocity );
+	}
 }
 
 
@@ -385,7 +447,8 @@ PM_CheckJump
 */
 static qboolean PM_CheckJump( void )
 {
-
+	float rampBoost;
+	vec3_t velocity;
 
 	if ( pm->ps->pm_flags & PMF_RESPAWNED ) {
 		return qfalse;		// don't allow jump until all buttons are up
@@ -396,7 +459,6 @@ static qboolean PM_CheckJump( void )
 		return qfalse;
 	}
 
-
 	// must wait for jump to be released
 	if ( pm->ps->pm_flags & PMF_JUMP_HELD ) {
 		// clear upmove so cmdscale doesn't lower running speed
@@ -404,15 +466,35 @@ static qboolean PM_CheckJump( void )
 		return qfalse;
 	}
 
-
-
-
 	pml.groundPlane = qfalse;		// jumping away
 	pml.walking = qfalse;
 	pm->ps->pm_flags |= PMF_JUMP_HELD;
 
 	pm->ps->groundEntityNum = ENTITYNUM_NONE;
+	velocity[0] = pm->ps->velocity[0];
+	velocity[1] = pm->ps->velocity[1];
+	velocity[2] = 0.0f;
+	
 	pm->ps->velocity[2] = JUMP_VELOCITY;
+
+	// Ramp boost
+	if (g_rampboost.value) {
+		if (DotProduct(velocity, pml.groundTrace.plane.normal) < 0.0f) {
+			rampBoost = -g_rampboost.value*DotProduct(velocity, pml.groundTrace.plane.normal);
+			rampBoost = (rampBoost < 0.0f) ? 0.0f : rampBoost;
+		} else {
+			rampBoost = 0.0f;
+		}
+		pm->ps->velocity[2] += rampBoost;
+	}
+	
+	// Double jump
+	if (g_doublejump.value) {
+		if (jump_timer > 0)
+			pm->ps->velocity[2] += g_doublejump.value;
+		jump_timer = 400;
+	}
+
 	PM_AddEvent( EV_JUMP );
 
 	if ( pm->cmd.forwardmove >= 0 ) {
@@ -639,6 +721,9 @@ static void PM_AirMove( void )
 	float		wishspeed;
 	float		scale;
 	usercmd_t	cmd;
+	vec3_t		velocity;
+	float		speed;
+	float		angle;
 
 	PM_Friction();
 
@@ -660,14 +745,48 @@ static void PM_AirMove( void )
 	for ( i = 0 ; i < 2 ; i++ ) {
 		wishvel[i] = pml.forward[i]*fmove + pml.right[i]*smove;
 	}
-	wishvel[2] = 0;
+
+	if (g_crouchdrop.value) {
+		if (pm->ps->pm_flags & PMF_DUCKED)
+			wishvel[2] -= 64.0;
+	}
+	else
+		wishvel[2] = 0;
 
 	VectorCopy (wishvel, wishdir);
 	wishspeed = VectorNormalize(wishdir);
 	wishspeed *= scale;
 
 	// not on ground, so little effect on velocity
-	PM_Accelerate (wishdir, wishspeed, pm_airaccelerate);
+	//     ^^^ We'll see about that. -- Joey
+	// CPM style strafe
+	if ( (g_cpmkbd.integer && (pm->cmd.rightmove != 0 && pm->cmd.forwardmove == 0)) ||
+			(g_orikbd.integer && (pm->cmd.rightmove == 0 && pm->cmd.forwardmove != 0)) ) {
+		if (wishspeed > g_strafewishspeed.value)
+			wishspeed = g_strafewishspeed.value;
+		PM_Accelerate (wishdir, wishspeed, g_strafeaccelerate.value);
+	}
+	else{
+		PM_AirAccelerate (wishdir, wishspeed, g_airaccelerate.value);
+	}
+
+	// Air control
+	if (g_aircontrol.value && (pm->cmd.rightmove == 0 && pm->cmd.forwardmove != 0)) {
+		for (i = 0; i < 2; i++)
+			velocity[i] = pm->ps->velocity[i];
+		velocity[2] = 0;
+		
+		speed = VectorLength(velocity);
+		angle = abs(DotProduct(velocity, wishdir));
+
+		velocity[0] += g_aircontrol.value * wishdir[0] * angle * pml.frametime;
+		velocity[1] += g_aircontrol.value * wishdir[1] * angle * pml.frametime;
+		VectorNormalize(velocity);
+
+		for (i=0 ; i<2 ; i++) {
+			pm->ps->velocity[i] = speed*velocity[i];
+		}
+	}
 
 	// we may have a ground plane that is very steep, even
 	// though we don't have a groundentity
@@ -771,7 +890,7 @@ static void PM_WalkMove( void )
 	// project the forward and right directions onto the ground plane
 	PM_ClipVelocity (pml.forward, pml.groundTrace.plane.normal, pml.forward, OVERCLIP );
 	PM_ClipVelocity (pml.right, pml.groundTrace.plane.normal, pml.right, OVERCLIP );
-	//
+
 	VectorNormalize (pml.forward);
 	VectorNormalize (pml.right);
 
@@ -803,12 +922,10 @@ static void PM_WalkMove( void )
 
 	// when a player gets hit, they temporarily lose
 	// full control, which allows them to be moved a bit
-	if ( ( pml.groundTrace.surfaceFlags & SURF_SLICK ) || pm->ps->pm_flags & PMF_TIME_KNOCKBACK ) {
-		accelerate = pm_airaccelerate;
-	}
-	else {
-		accelerate = pm_accelerate;
-	}
+	if ( ( pml.groundTrace.surfaceFlags & SURF_SLICK ) || pm->ps->pm_flags & PMF_TIME_KNOCKBACK )
+		accelerate = g_slickaccelerate.value;
+	else
+		accelerate = g_accelerate.value;
 
 	PM_Accelerate (wishdir, wishspeed, accelerate);
 
@@ -890,7 +1007,7 @@ static void PM_NoclipMove( void )
 	else {
 		drop = 0;
 
-		friction = pm_friction*1.5;	// extra friction
+		friction = g_friction.value*1.5;	// extra friction
 		control = speed < pm_stopspeed ? pm_stopspeed : speed;
 		drop += control*friction*pml.frametime;
 
@@ -917,7 +1034,7 @@ static void PM_NoclipMove( void )
 	wishspeed = VectorNormalize(wishdir);
 	wishspeed *= scale;
 
-	PM_Accelerate( wishdir, wishspeed, pm_accelerate );
+	PM_Accelerate( wishdir, wishspeed, g_accelerate.value );
 
 	// move
 	VectorMA (pm->ps->origin, pml.frametime, pm->ps->velocity, pm->ps->origin);
@@ -1026,7 +1143,7 @@ static void PM_CrashLand( void )
 		else if ( delta > 7 ) {
 			PM_AddEvent( EV_FALL_SHORT );
 		}
-		else {
+		else if (!pm->noFootsteps) {
 			PM_AddEvent( PM_FootstepForSurface() );
 		}
 	}
@@ -1311,8 +1428,10 @@ static void PM_CheckDuck (void)
 			// try to stand up
 			pm->maxs[2] = 32;
 			pm->trace (&trace, pm->ps->origin, pm->mins, pm->maxs, pm->ps->origin, pm->ps->clientNum, pm->tracemask );
-			if (!trace.allsolid)
+			if (!trace.allsolid) {
 				pm->ps->pm_flags &= ~PMF_DUCKED;
+				crouch_timer = 400;
+			}
 		}
 	}
 
@@ -1909,6 +2028,22 @@ static void PM_DropTimers( void )
 		pm->ps->torsoTimer -= pml.msec;
 		if ( pm->ps->torsoTimer < 0 ) {
 			pm->ps->torsoTimer = 0;
+		}
+	}
+
+	// drop post-crouch counter
+	if ( crouch_timer > 0 ) {
+		crouch_timer -= pml.msec;
+		if ( crouch_timer < 0 ) {
+			crouch_timer = 0;
+		}
+	}
+
+	// drop post-jump counter
+	if ( jump_timer > 0 ) {
+		jump_timer -= pml.msec;
+		if ( jump_timer < 0 ) {
+			jump_timer = 0;
 		}
 	}
 }

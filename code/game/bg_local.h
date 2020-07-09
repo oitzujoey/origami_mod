@@ -61,16 +61,32 @@ extern	float	pm_stopspeed;
 extern	float	pm_duckScale;
 extern	float	pm_wadeScale;
 
-extern	float	pm_accelerate;
+// extern	float	pm_accelerate;
 extern	float	pm_airaccelerate;
 extern	float	pm_wateraccelerate;
 extern	float	pm_flyaccelerate;
 
-extern	float	pm_friction;
+// extern	float	pm_friction;
 extern	float	pm_waterfriction;
 extern	float	pm_flightfriction;
 
 extern	int		c_pmove;
+
+/* Origami mod */
+extern	vmCvar_t g_doublejump;
+extern	vmCvar_t g_aircontrol;
+extern	vmCvar_t g_strafeaccelerate;
+extern	vmCvar_t g_wishspeed;
+extern	vmCvar_t g_strafewishspeed;
+extern	vmCvar_t g_accelerate;
+extern	vmCvar_t g_slickaccelerate;
+extern	vmCvar_t g_airaccelerate;
+extern	vmCvar_t g_friction;
+extern	vmCvar_t g_rampboost;
+extern	vmCvar_t g_crouchfriction;
+extern	vmCvar_t g_crouchdrop;
+extern	vmCvar_t g_teleportprojectiles;
+extern	vmCvar_t g_orikbd;
 
 void PM_ClipVelocity( vec3_t in, vec3_t normal, vec3_t out, float overbounce );
 void PM_AddTouchEnt( int entityNum );

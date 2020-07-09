@@ -1,0 +1,37 @@
+
+Ideas:
+    Doom BFG
+        Ball
+            500 relative damage
+            Particle
+            Activated with delay
+        40 tracers
+            67.5 relative damage each
+            Hitscan
+            Activated on third relative frame of Ball hit
+            Tracers span -45 deg to a little less than 45 deg
+    Lightning gun water explosion
+    Destroyable missiles
+    Drop backpack on death
+    Teleporting projectiles
+    Teleporting hitscan?
+
+Cvars:
+    bool g_movetomouse [0]
+        Looking up or down reduces the amount players can move (accelerate, technically) when this is on.
+    bool g_backpack [0]
+        Drop backpacks like in Q1.
+    bool g_teleportprojectiles [0]
+
+Commands
+    drop
+    taunt
+
+Votes:
+    Any new server variables
+    dmflags
+    vq3
+    qworld
+    promode
+    orimode
+    Weird Physics

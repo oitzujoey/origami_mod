@@ -747,6 +747,7 @@ void trigger_teleporter_touch (gentity_t *self, gentity_t *other, trace_t *trace
 // g_misc.c
 //
 void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles );
+void TeleportEntity( gentity_t *player, vec3_t origin, vec3_t angles );
 void DropPortalSource( gentity_t *ent );
 void DropPortalDestination( gentity_t *ent );
 /**
@@ -1178,6 +1179,23 @@ extern vmCvar_t g_ddRespawnDelay;
 extern vmCvar_t g_developer;
 extern vmCvar_t g_spSkill;
 extern vmCvar_t g_bot_noChat;
+/* Origami mod */
+extern vmCvar_t g_doublejump;
+extern vmCvar_t g_aircontrol;
+extern vmCvar_t g_strafeaccelerate;
+extern vmCvar_t g_wishspeed;
+extern vmCvar_t g_strafewishspeed;
+extern vmCvar_t g_rampboost;
+extern vmCvar_t g_accelerate;
+extern vmCvar_t g_slickaccelerate;
+extern vmCvar_t g_airaccelerate;
+extern vmCvar_t g_friction;
+extern vmCvar_t g_crouchfriction;
+extern vmCvar_t g_cpmkbd;
+extern vmCvar_t g_crouchdrop;
+extern vmCvar_t g_backpack;
+extern vmCvar_t g_teleportprojectiles;
+extern vmCvar_t g_orikbd;
 
 void	trap_Printf( const char *fmt );
 void	trap_Error( const char *fmt ) __attribute__((noreturn));

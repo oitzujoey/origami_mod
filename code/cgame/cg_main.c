@@ -305,6 +305,24 @@ vmCvar_t cg_missionpackChecks;
 vmCvar_t cg_developer;
 /* /Neon_Knight */
 
+/* Origami mod */
+vmCvar_t g_doublejump;
+vmCvar_t g_aircontrol;
+vmCvar_t g_strafeaccelerate;
+vmCvar_t g_wishspeed;
+vmCvar_t g_strafewishspeed;
+vmCvar_t g_rampboost;
+vmCvar_t g_accelerate;
+vmCvar_t g_slickaccelerate;
+vmCvar_t g_friction;
+vmCvar_t g_crouchfriction;
+vmCvar_t g_cpmkbd;
+vmCvar_t g_crouchdrop;
+vmCvar_t g_backpack;
+vmCvar_t g_airaccelerate;
+vmCvar_t g_teleportprojectiles;
+vmCvar_t g_orikbd;
+
 typedef struct {
 	vmCvar_t *vmCvar;
 	char *cvarName;

@@ -195,6 +195,23 @@ vmCvar_t g_ddRespawnDelay;
 vmCvar_t g_developer;
 vmCvar_t g_spSkill;
 vmCvar_t g_bot_noChat;
+/* Origami mod */
+vmCvar_t g_doublejump;
+vmCvar_t g_aircontrol;
+vmCvar_t g_strafeaccelerate;
+vmCvar_t g_wishspeed;
+vmCvar_t g_strafewishspeed;
+vmCvar_t g_rampboost;
+vmCvar_t g_accelerate;
+vmCvar_t g_slickaccelerate;
+vmCvar_t g_friction;
+vmCvar_t g_crouchfriction;
+vmCvar_t g_cpmkbd;
+vmCvar_t g_crouchdrop;
+vmCvar_t g_backpack;
+vmCvar_t g_airaccelerate;
+vmCvar_t g_teleportprojectiles;
+vmCvar_t g_orikbd;
 
 mapinfo_result_t mapinfo;
 
@@ -412,7 +429,23 @@ static cvarTable_t gameCvarTable[] = {
 	/* Neon_Knight: Developer mode*/
 	{ &g_developer, "developer", "0", CVAR_CHEAT, 0, qtrue},
 	{ &g_spSkill, "g_spSkill", "2", 0, 0, qtrue},
-	{ &g_bot_noChat, "bot_nochat", "0", 0, 0, qtrue}
+	/* Origami mod */
+	{ &g_doublejump, "g_doublejump", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_aircontrol, "g_aircontrol", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_strafeaccelerate, "g_strafeaccelerate", "1", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_wishspeed, "g_wishspeed", "400", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_strafewishspeed, "g_strafewishspeed", "30", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_rampboost, "g_rampboost", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_accelerate, "g_accelerate", "10", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_slickaccelerate, "g_slickaccelerate", "10", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_airaccelerate, "g_airaccelerate", "1", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_friction, "g_friction", "6", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_crouchfriction, "g_crouchfriction", "1", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_cpmkbd, "g_cpmkbd", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_crouchdrop, "g_crouchdrop", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_backpack, "g_backpack", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_teleportprojectiles, "g_teleportprojectiles", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_orikbd, "g_orikbd", "0", CVAR_ARCHIVE, 0, qtrue}
 
 };
 
