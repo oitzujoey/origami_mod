@@ -1,36 +1,37 @@
-# OpenArena gamecode
-[![Build Status](https://travis-ci.org/OpenArena/gamecode.svg?branch=master)](https://travis-ci.org/OpenArena/gamecode) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/90453976351f455f89d42651658fa63a)](https://www.codacy.com/app/github_43/gamecode_2?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=OpenArena/gamecode&amp;utm_campaign=Badge_Grade)
 
-## Description ##
-This is the game code part of OpenArena. In mod form it is referred as OpenArenaExpanded (OAX).
+# README.md 
 
-## Building ##
+## Config
 
-You need a C-compiler (tested with gcc and clang) and GNU make then just type
-```
-make
-```
-and the qvm-files will be build. Ready to be packed into a pk3-file.
+| Type  | Cvar                  | VM     | Default | Description                                                                                       |
+|-------|-----------------------|--------|:-------:|---------------------------------------------------------------------------------------------------|
+| float | g_doublejump          | Server | 0       | Give a boost if a jump is done within 400 ms of the last one.                                     |
+| float | g_aircontrol          | Server | 0       | CPM air control. 5--10 is a good number.                                                          |
+| float | g_strafeaccelerate    | Server | 1       | Air acceleration that is only applied when strafing in a CPM-like mode (g_cpmkbd || g_orikbd)     |
+| float | g_wishspeed           | Server | 400     | The thing that makes you go slow in Q1                                                            |
+| float | g_rampboost           | Server | 0       | Give a boost when jumping up ramps. 100 is a good number.                                         |
+| float | g_acclerate           | Server | 10      | pm_accelerate: Ground acceleration                                                                |
+| float | g_airacclerate        | Server | 1       | pm_airaccelerate: Air acceleration                                                                |
+| float | g_friction            | Server | 6       | pm_friction: Ground friction                                                                      |
+| float | g_crouchfriction      | Server | 1       | Reduce (or increase) friction when crouched. This is a factor of g_friction.                      |
+| bool  | g_cpmkbd              | Server | 0       | Turn CPM keyboard specific movement rules on or off.                                              |
+| bool  | g_orikbd              | Server | 0       | Turn CPM-like keyboard specific movement rules on or off. This is for forward and backward.       |
+| bool  | g_crouchdrop          | Server | 0       | Press crouch to drop faster. Useful to prevent overshooting the top of ledges when using bounce pads. |
+| bool  | g_backpack            | Server | 0       | Not implemented. Comes from Q1.                                                                   |
+| bool  | g_teleportprojectiles | Server | 0       | Not implemented. If you know how to do this, I would appreciate your help.                        |
 
-See https://github.com/OpenArena/gamecode/wiki/Build-instruction for more details.
+That's it for now.  
+There are several example config files in the physics directory:
 
-See http://openarena.wikia.com/wiki/OpenArena_eXpanded for alternative build options
+| | |
+|-|-|
+| VQ3: | Pretty accurate implementation if I do say so myself. |
+| Q1: | Is supposed to be Q1. Who knows if I got it right. |
+| CPM: | Seems pretty close to CPM physics. The air control and a few variables may be off though. |
+| Origami Mode: | Rat has its own, so why can't I? Like CPM, but without W air control. Crouching allows you to fall faster and slide. |
+| Weird Physics: | Like Origami, but without the A & D wishspeed limitation. It's fast. |
 
-## Extracting entities ##
-It is possible to extract entity definition for use with GtkRadiant and NetRadiant like this:
-
-```
-cd code/game
-./extract_entities.sh > openarena.def
-```
-
-## Links ##
-Development documentation is located here: https://github.com/OpenArena/gamecode/wiki
-
-The development board on the OpenArena forum: http://openarena.ws/board/index.php?board=30.0
-
-In particular the Open Arena Expanded topic: http://openarena.ws/board/index.php?topic=1908.0
-
-## License ##
-
-This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version.
+## Notes:
+Air physics has been modified for all modes. High values of g_airacclerate will no longer reduce jump height. I have no idea why that was happening. I think it was a bug in the original code.  
+I know that CPM is incorrect. If you have improvements, please tell me. I admit that I used some [code](https://web.archive.org/web/20070214143052/http://games.linuxdude.com/tamaps/archive/cpm1_dev_docs.zip) (It's a zip) that fell under the old Q3A mod license, but I have tried to purge it. This has resulted in a less accurate imitation of CPM physics. At least you have access to the source code as a result.  
+Source code is available under GPL v2 at <https://github.com/oitzujoey/origami_mod>. If it is gone, then try looking at <https://www.origamiparade.com>. If that's gone, try <https://www.archive.org>. If that's gone, well... you're probably out of luck, but I'd be amused to know that my mod survived the downfall of civilization.  
