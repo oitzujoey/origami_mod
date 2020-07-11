@@ -5,3 +5,4 @@ Makefile.local
 nbproject
 windows
 .vscode
+pak/vm/*
