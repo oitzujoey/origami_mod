@@ -670,4 +670,7 @@ void CG_InitConsoleCommands(void) {
 	trap_AddCommand("stats");
 	trap_AddCommand("teamtask");
 	trap_AddCommand("loaddefered"); // spelled wrong, but not changing for demo
+	/* Origami Mod */
+	trap_AddCommand("dropammo");
+	trap_AddCommand("dropweapon");
 }

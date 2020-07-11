@@ -2261,6 +2261,45 @@ void Cmd_GetMappage_f( gentity_t *ent ) {
 	trap_SendServerCommand( ent-g_entities, string );
 }
 
+/*
+================
+Cmd_DropWeapon_f
+================
+*/
+void Cmd_DropWeapon_f( gentity_t *ent) {
+	int weapon = ent->s.weapon;
+	gitem_t *item;
+	vec3_t origin;
+	vec3_t delta;
+	vec3_t angles;
+
+	if (g_instantgib.integer || g_rockets.integer || g_gametype.integer == GT_CTF_ELIMINATION || g_elimination_allgametypes.integer) {
+		//Nothing!
+	}
+	else if ( weapon > WP_NONE && ent->client->ps.ammo[ weapon ] ) {
+		// find the item type for this weapon
+		item = BG_FindItemForWeapon( weapon );
+
+		VectorCopy(ent->s.pos.trBase, origin);
+		VectorCopy(ent->s.apos.trBase, angles);
+
+		if (angles[PITCH] > 0)
+			angles[PITCH] = 0;
+		
+		AngleVectors(angles , delta, NULL, NULL );
+		VectorScale( delta, 75, delta);
+		VectorAdd(origin, delta, origin);
+
+		// spawn the item
+		Drop_ItemFromOrigin( ent, item, origin, 0 );
+
+		// Remove weapon and ammo from inventory.
+		ent->client->ps.ammo[ weapon ] = 0;
+		ent->client->ps.stats[STAT_WEAPONS] &= ~(1<<item->giTag);
+		ent->client->ps.weaponstate = WEAPON_DROPPING;
+	}
+}
+
 //KK-OAX This is the table that ClientCommands runs the console entry against. 
 commands_t cmds[ ] = 
 {
@@ -2311,8 +2350,10 @@ commands_t cmds[ ] =
 	//KK-OAX
 	{ "freespectator", CMD_NOTEAM, StopFollowing },
 	{ "getmappage", 0, Cmd_GetMappage_f },
-	{ "gc", 0, Cmd_GameCommand_f }
+	{ "gc", 0, Cmd_GameCommand_f },
 
+	// Origami Mod
+	{ "dropweapon", CMD_LIVING, Cmd_DropWeapon_f }
 };
 
 static int numCmds = sizeof( cmds ) / sizeof( cmds[ 0 ] );

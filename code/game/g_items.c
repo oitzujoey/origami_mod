@@ -651,6 +651,57 @@ gentity_t *LaunchItem( gitem_t *item, vec3_t origin, vec3_t velocity )
 
 /*
 ================
+LaunchDroppedItem
+
+Spawns an item and tosses it forward
+================
+*/
+gentity_t *LaunchDroppedItem( gentity_t *ent, gitem_t *item, vec3_t origin, vec3_t velocity )
+{
+	gentity_t	*dropped;
+
+	dropped = G_Spawn();
+
+	dropped->count = ent->client->ps.ammo[ ent->s.weapon ];
+
+	dropped->s.eType = ET_ITEM;
+	dropped->s.modelindex = item - bg_itemlist;	// store item number in modelindex
+	dropped->s.modelindex2 = 1; // This is non-zero is it's a dropped item
+
+	dropped->classname = item->classname;
+	dropped->item = item;
+	VectorSet (dropped->r.mins, -ITEM_RADIUS, -ITEM_RADIUS, -ITEM_RADIUS);
+	VectorSet (dropped->r.maxs, ITEM_RADIUS, ITEM_RADIUS, ITEM_RADIUS);
+	dropped->r.contents = CONTENTS_TRIGGER;
+
+	dropped->touch = Touch_Item;
+
+	G_SetOrigin( dropped, origin );
+	dropped->s.pos.trType = TR_GRAVITY;
+	dropped->s.pos.trTime = level.time;
+	VectorCopy( velocity, dropped->s.pos.trDelta );
+
+	dropped->s.eFlags |= EF_BOUNCE_HALF;
+	if ((G_UsesTeamFlags(g_gametype.integer) || G_UsesTheWhiteFlag(g_gametype.integer) || g_gametype.integer == GT_DOUBLE_D)
+	        && item->giType == IT_TEAM) { // Special case for CTF flags
+		dropped->think = Team_DroppedFlagThink;
+		dropped->nextthink = level.time + 30000;
+		Team_CheckDroppedItem( dropped );
+	}
+	else {   // auto-remove after 30 seconds
+		dropped->think = G_FreeEntity;
+		dropped->nextthink = level.time + 30000;
+	}
+
+	dropped->flags = FL_DROPPED_ITEM;
+
+	trap_LinkEntity (dropped);
+
+	return dropped;
+}
+
+/*
+================
 Drop_Item
 
 Spawns an item and tosses it forward
@@ -670,6 +721,29 @@ gentity_t *Drop_Item( gentity_t *ent, gitem_t *item, float angle )
 	velocity[2] += 200 + crandom() * 50;
 
 	return LaunchItem( item, ent->s.pos.trBase, velocity );
+}
+
+/*
+================
+Drop_ItemFromOrigin
+
+Spawns an item and tosses it forward
+================
+*/
+gentity_t *Drop_ItemFromOrigin( gentity_t *ent, gitem_t *item, vec3_t origin, float angle )
+{
+	vec3_t	velocity;
+	vec3_t	angles;
+
+	VectorCopy( ent->s.apos.trBase, angles );
+	angles[YAW] += angle;
+	angles[PITCH] = 0;	// always forward
+
+	AngleVectors( angles, velocity, NULL, NULL );
+	VectorScale( velocity, 150, velocity );
+	velocity[2] = velocity[2] > 0 ? velocity[2] : 0;
+
+	return LaunchDroppedItem( ent, item, origin, velocity );
 }
 
 
