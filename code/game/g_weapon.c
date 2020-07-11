@@ -31,6 +31,8 @@ static	vec3_t	muzzle;
 
 #define NUM_NAILSHOTS 15
 
+static void KamikazeRadiusDamage(vec3_t, gentity_t *, float, float);
+
 /*
 ================
 G_BounceProjectile
@@ -722,6 +724,20 @@ void Weapon_LightningFire( gentity_t *ent )
 	vec3_t impactpoint, bouncedir;
 	gentity_t	*traceEnt, *tent;
 	int			damage, i, passent;
+
+
+	if (ent->waterlevel && g_lightningdischarge.integer) {
+
+		G_Damage( ent, ent, ent, NULL, NULL, 100000, DAMAGE_NO_PROTECTION, MOD_LIGHTNING_DISCHARGE );
+
+		// splash damage
+		if( G_RadiusDamage( ent->s.pos.trBase, ent->activator, 400, 
+				(35 * ent->client->ps.ammo[WP_LIGHTNING]) / 10, ent, MOD_LIGHTNING_DISCHARGE ) ) {
+			ent->client->accuracy_hits++;
+		}
+
+		return;
+	}
 
 	damage = 8 * s_quadFactor;
 

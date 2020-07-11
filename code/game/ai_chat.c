@@ -262,6 +262,7 @@ char *BotWeaponNameForMeansOfDeath(int mod) {
 		case MOD_PLASMA:
 		case MOD_PLASMA_SPLASH: return "Plasmagun";
 		case MOD_RAILGUN: return "Railgun";
+		case MOD_LIGHTNING_DISCHARGE:
 		case MOD_LIGHTNING: return "Lightning Gun";
 		case MOD_BFG:
 		case MOD_BFG_SPLASH: return "BFG10K";

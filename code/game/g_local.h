@@ -1196,6 +1196,7 @@ extern vmCvar_t g_crouchdrop;
 extern vmCvar_t g_backpack;
 extern vmCvar_t g_teleportprojectiles;
 extern vmCvar_t g_orikbd;
+extern vmCvar_t g_lightningdischarge;
 
 void	trap_Printf( const char *fmt );
 void	trap_Error( const char *fmt ) __attribute__((noreturn));

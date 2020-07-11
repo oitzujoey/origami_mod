@@ -212,6 +212,7 @@ vmCvar_t g_backpack;
 vmCvar_t g_airaccelerate;
 vmCvar_t g_teleportprojectiles;
 vmCvar_t g_orikbd;
+vmCvar_t g_lightningdischarge;
 
 mapinfo_result_t mapinfo;
 
@@ -445,7 +446,8 @@ static cvarTable_t gameCvarTable[] = {
 	{ &g_crouchdrop, "g_crouchdrop", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_backpack, "g_backpack", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_teleportprojectiles, "g_teleportprojectiles", "0", CVAR_ARCHIVE, 0, qtrue},
-	{ &g_orikbd, "g_orikbd", "0", CVAR_ARCHIVE, 0, qtrue}
+	{ &g_orikbd, "g_orikbd", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_lightningdischarge, "g_lightningdischarge", "0", CVAR_ARCHIVE, 0, qtrue}
 
 };
 

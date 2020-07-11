@@ -343,6 +343,7 @@ static void CG_Obituary(entityState_t *ent) {
 				causeShader = cgs.media.railgunShader;
 				break;
 			case MOD_LIGHTNING:
+			case MOD_LIGHTNING_DISCHARGE:
 				message = "was electrocuted by";
 				causeShader = cgs.media.lightninggunShader;
 				break;

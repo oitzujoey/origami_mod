@@ -10,7 +10,7 @@ Ideas:
             Hitscan
             Activated on third relative frame of Ball hit
             Tracers span -45 deg to a little less than 45 deg
-    Lightning gun water explosion
+
     Destroyable missiles
     Drop backpack on death
     Teleporting projectiles

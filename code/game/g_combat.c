@@ -348,6 +348,7 @@ static const char *modNames[] = {
 	"MOD_PLASMA_SPLASH",
 	"MOD_RAILGUN",
 	"MOD_LIGHTNING",
+	"MOD_LIGHTNING_DISCHARGE",
 	"MOD_BFG",
 	"MOD_BFG_SPLASH",
 	"MOD_WATER",
@@ -634,6 +635,7 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 				case MOD_ROCKET_SPLASH:
 					ChallengeMessage(attacker,WEAPON_ROCKET_KILLS);
 					break;
+				case MOD_LIGHTNING_DISCHARGE:
 				case MOD_LIGHTNING:
 					ChallengeMessage(attacker,WEAPON_LIGHTNING_KILLS);
 					break;

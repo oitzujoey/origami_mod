@@ -331,6 +331,7 @@ void G_RankDamage( int self, int attacker, int damage, int means_of_death )
 		key_hit = QGR_KEY_HIT_TAKEN_RAILGUN;
 		key_damage = QGR_KEY_DAMAGE_TAKEN_RAILGUN;
 		break;
+	case MOD_LIGHTNING_DISCHARGE:
 	case MOD_LIGHTNING:
 		key_hit = QGR_KEY_HIT_TAKEN_LIGHTNING;
 		key_damage = QGR_KEY_DAMAGE_TAKEN_LIGHTNING;
@@ -408,6 +409,7 @@ void G_RankDamage( int self, int attacker, int damage, int means_of_death )
 			key_hit = QGR_KEY_HIT_GIVEN_RAILGUN;
 			key_damage = QGR_KEY_DAMAGE_GIVEN_RAILGUN;
 			break;
+		case MOD_LIGHTNING_DISCHARGE:
 		case MOD_LIGHTNING:
 			key_hit = QGR_KEY_HIT_GIVEN_LIGHTNING;
 			key_damage = QGR_KEY_DAMAGE_GIVEN_LIGHTNING;
@@ -569,6 +571,7 @@ void G_RankPlayerDie( int self, int attacker, int means_of_death )
 		case MOD_RAILGUN:
 			trap_RankReportInt( p1, p2, QGR_KEY_SUICIDE_RAILGUN, 1, 1 );
 			break;
+		case MOD_LIGHTNING_DISCHARGE:
 		case MOD_LIGHTNING:
 			trap_RankReportInt( p1, p2, QGR_KEY_SUICIDE_LIGHTNING, 1, 1 );
 			break;
@@ -617,6 +620,7 @@ void G_RankPlayerDie( int self, int attacker, int means_of_death )
 		case MOD_RAILGUN:
 			trap_RankReportInt( p1, p2, QGR_KEY_FRAG_RAILGUN, 1, 1 );
 			break;
+		case MOD_LIGHTNING_DISCHARGE:
 		case MOD_LIGHTNING:
 			trap_RankReportInt( p1, p2, QGR_KEY_FRAG_LIGHTNING, 1, 1 );
 			break;
