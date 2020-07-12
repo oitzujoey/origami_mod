@@ -23,7 +23,6 @@ Cvars:
     bool g_teleportprojectiles [0]
 
 Commands
-    drop
     taunt
 
 Votes:

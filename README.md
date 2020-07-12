@@ -16,7 +16,7 @@
 | float | g_crouchfriction      | Server | 1       | Reduce (or increase) friction when crouched. This is a factor of g_friction.                      |
 | bool  | g_cpmkbd              | Server | 0       | Turn CPM keyboard specific movement rules on or off.                                              |
 | bool  | g_orikbd              | Server | 0       | Turn CPM-like keyboard specific movement rules on or off. This is for forward and backward.       |
-| bool  | g_crouchdrop          | Server | 0       | Press crouch to drop faster. Useful to prevent overshooting the top of ledges when using bounce pads. |
+| float  | g_crouchdrop          | Server | 0      | Press crouch to drop faster. Useful to prevent overshooting the top of ledges when using bounce pads. |
 | bool  | g_backpack            | Server | 0       | Not implemented. Comes from Q1.                                                                   |
 | bool  | g_teleportprojectiles | Server | 0       | Not implemented. If you know how to do this, I would appreciate your help.                        |
 

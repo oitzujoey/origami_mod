@@ -727,6 +727,10 @@ static void PM_AirMove( void )
 
 	PM_Friction();
 
+	// Drop faster when crouched.
+	if ( (g_crouchdrop.integer) && (pm->ps->pm_flags & PMF_DUCKED) )
+			pm->ps->velocity[2] -= g_crouchdrop.value*pml.frametime;
+
 	fmove = pm->cmd.forwardmove;
 	smove = pm->cmd.rightmove;
 
@@ -745,13 +749,7 @@ static void PM_AirMove( void )
 	for ( i = 0 ; i < 2 ; i++ ) {
 		wishvel[i] = pml.forward[i]*fmove + pml.right[i]*smove;
 	}
-
-	if (g_crouchdrop.value) {
-		if (pm->ps->pm_flags & PMF_DUCKED)
-			wishvel[2] -= 64.0;
-	}
-	else
-		wishvel[2] = 0;
+	wishvel[2] = 0;
 
 	VectorCopy (wishvel, wishdir);
 	wishspeed = VectorNormalize(wishdir);
