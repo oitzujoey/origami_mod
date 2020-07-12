@@ -21,6 +21,11 @@
 | bool  | g_backpack            | Server | 0       | Not implemented. Comes from Q1.                                                                   |
 | bool  | g_teleportprojectiles | Server | 0       | Not implemented. If you know how to do this, I would appreciate your help.                        |
 
+| Command | Effect |
+|-|-|
+| dropweapon | Drop the current weapon you are carrying. |
+| dropammo | Drop one full set of ammo of the weapon you are carrying if able. |
+
 That's it for now.  
 There are several example config files in the physics directory:
 
