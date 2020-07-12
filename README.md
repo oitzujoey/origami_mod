@@ -1,5 +1,5 @@
 
-# README.md 
+# README.md
 
 ## Config
 
@@ -37,7 +37,7 @@ There are several example config files in the physics directory:
 | Origami Mode: | Rat has its own, so why can't I? Like CPM, but without W air control. Crouching allows you to fall faster and slide. |
 | Weird Physics: | Like Origami, but without the A & D wishspeed limitation. It's fast. |
 
-## Notes:
+## Notes
 Air physics has been modified for all modes. High values of g_airacclerate will no longer reduce jump height. I have no idea why that was happening. I think it was a bug in the original code.  
 I know that CPM is incorrect. If you have improvements, please tell me. I admit that I used some [code](https://web.archive.org/web/20070214143052/http://games.linuxdude.com/tamaps/archive/cpm1_dev_docs.zip) (It's a zip) that fell under the old Q3A mod license, but I have tried to purge it. This has resulted in a less accurate imitation of CPM physics. At least you have access to the source code as a result.  
 Source code is available under GPL v2 at <https://github.com/oitzujoey/origami_mod>. If it is gone, then try looking at <http://www.origamiparade.com>. If that's gone, try <https://www.archive.org>. If that's gone, well... you're probably out of luck, but I'd be amused to know that my mod survived the downfall of civilization.  
