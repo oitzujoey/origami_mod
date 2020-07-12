@@ -1120,7 +1120,26 @@ gitem_t *BG_FindItemForHoldable(holdable_t pw) {
 
 /*
 ===============
-BG_FindItemForWeapon
+BG_FindItemForAmmo
+
+===============
+ */
+gitem_t *BG_FindItemForAmmo(weapon_t ammo) {
+	gitem_t *it;
+
+	for (it = bg_itemlist + 1; it->classname; it++) {
+		if (it->giType == IT_AMMO && it->giTag == ammo) {
+			return it;
+		}
+	}
+
+	Com_Error(ERR_DROP, "Couldn't find item for ammo %i", ammo);
+	return NULL;
+}
+
+/*
+===============
+BG_FindItemForAmmo
 
 ===============
  */

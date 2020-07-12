@@ -2263,6 +2263,46 @@ void Cmd_GetMappage_f( gentity_t *ent ) {
 
 /*
 ================
+Cmd_DropAmmo_f
+================
+*/
+void Cmd_DropAmmo_f( gentity_t *ent) {
+	int weapon = ent->s.weapon;
+	gitem_t *item;
+	vec3_t origin;
+	vec3_t delta;
+	vec3_t angles;
+
+	if (g_instantgib.integer || g_rockets.integer || g_gametype.integer == GT_CTF_ELIMINATION || g_elimination_allgametypes.integer) {
+		//Nothing!
+	}
+	else if ( weapon > WP_GAUNTLET && weapon != WP_GRAPPLING_HOOK && ent->client->ps.ammo[ weapon ] ) {
+		// find the item type for this ammo
+		item = BG_FindItemForAmmo( weapon );
+		
+		if (ent->client->ps.ammo[ weapon ] < item->quantity)
+			return;
+
+		VectorCopy(ent->s.pos.trBase, origin);
+		VectorCopy(ent->s.apos.trBase, angles);
+
+		if (angles[PITCH] > 0)
+			angles[PITCH] = 0;
+		
+		AngleVectors(angles , delta, NULL, NULL );
+		VectorScale( delta, 75, delta);
+		VectorAdd(origin, delta, origin);
+
+		// spawn the item
+		Drop_AmmoFromOrigin( ent, item, origin, 0 );
+
+		// Remove weapon and ammo from inventory.
+		ent->client->ps.ammo[ weapon ] -= item->quantity;
+	}
+}
+
+/*
+================
 Cmd_DropWeapon_f
 ================
 */
@@ -2291,7 +2331,7 @@ void Cmd_DropWeapon_f( gentity_t *ent) {
 		VectorAdd(origin, delta, origin);
 
 		// spawn the item
-		Drop_ItemFromOrigin( ent, item, origin, 0 );
+		Drop_WeaponFromOrigin( ent, item, origin, 0 );
 
 		// Remove weapon and ammo from inventory.
 		ent->client->ps.ammo[ weapon ] = 0;
@@ -2353,6 +2393,7 @@ commands_t cmds[ ] =
 	{ "gc", 0, Cmd_GameCommand_f },
 
 	// Origami Mod
+	{ "dropammo", CMD_LIVING, Cmd_DropAmmo_f },
 	{ "dropweapon", CMD_LIVING, Cmd_DropWeapon_f }
 };
 
