@@ -9,6 +9,7 @@ then
     ENGINEDIR=gamecode
     mkdir pak
     cp -r build/release-linux-$(uname -m)/oax/vm pak
+    cp README.md pak/docs
 else
     echo "This engine is not currently supported. Aborting."
     exit 1

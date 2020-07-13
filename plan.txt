@@ -14,6 +14,8 @@ Ideas:
     Drop backpack on death
     Teleporting projectiles
     Teleporting hitscan?
+    Grenades bounce on jump pads
+    Emphasized overbounce
 
 Cvars:
     bool g_movetomouse [0]
@@ -21,6 +23,9 @@ Cvars:
     bool g_backpack [0]
         Drop backpacks like in Q1.
     bool g_teleportprojectiles [0]
+    bool g_allowdrop [0]
+    bool g_grenadejumppads [0]
+    float g_overbounce [0]
 
 Commands
     taunt
