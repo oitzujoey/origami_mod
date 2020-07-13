@@ -447,9 +447,6 @@ PM_CheckJump
 */
 static qboolean PM_CheckJump( void )
 {
-	float rampBoost;
-	vec3_t velocity;
-
 	if ( pm->ps->pm_flags & PMF_RESPAWNED ) {
 		return qfalse;		// don't allow jump until all buttons are up
 	}
@@ -471,22 +468,17 @@ static qboolean PM_CheckJump( void )
 	pm->ps->pm_flags |= PMF_JUMP_HELD;
 
 	pm->ps->groundEntityNum = ENTITYNUM_NONE;
-	velocity[0] = pm->ps->velocity[0];
-	velocity[1] = pm->ps->velocity[1];
-	velocity[2] = 0.0f;
 	
-	pm->ps->velocity[2] = JUMP_VELOCITY;
-
 	// Ramp boost
-	if (g_rampboost.value) {
-		if (DotProduct(velocity, pml.groundTrace.plane.normal) < 0.0f) {
-			rampBoost = -g_rampboost.value*DotProduct(velocity, pml.groundTrace.plane.normal);
-			rampBoost = (rampBoost < 0.0f) ? 0.0f : rampBoost;
-		} else {
-			rampBoost = 0.0f;
-		}
-		pm->ps->velocity[2] += rampBoost;
+	// I can't believe that this is all that is required.
+	// All the hard work is done by PM_ClipVelocity!
+	if (g_rampboost.integer) {
+		pm->ps->velocity[2] += JUMP_VELOCITY;
+		if (pm->ps->velocity[2] < JUMP_VELOCITY)
+			pm->ps->velocity[2] = JUMP_VELOCITY;
 	}
+	else
+		pm->ps->velocity[2] = JUMP_VELOCITY;
 	
 	// Double jump
 	if (g_doublejump.value) {
