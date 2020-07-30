@@ -223,6 +223,9 @@ static void PM_Friction( void )
 		}
 	}
 
+	if ( g_quakeramp.integer && pm->ps->velocity[2] > 180 )
+		drop = 0;
+
 	// apply water friction even if just wading
 	if ( pm->waterlevel ) {
 		drop += speed*pm_waterfriction*pm->waterlevel*pml.frametime*duckFriction;
