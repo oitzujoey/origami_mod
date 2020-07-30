@@ -202,6 +202,8 @@ vmCvar_t g_strafeaccelerate;
 vmCvar_t g_wishspeed;
 vmCvar_t g_strafewishspeed;
 vmCvar_t g_rampboost;
+vmCvar_t g_planerjump;
+vmCvar_t g_quakeramp;
 vmCvar_t g_accelerate;
 vmCvar_t g_slickaccelerate;
 vmCvar_t g_friction;
@@ -437,6 +439,8 @@ static cvarTable_t gameCvarTable[] = {
 	{ &g_wishspeed, "g_wishspeed", "400", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_strafewishspeed, "g_strafewishspeed", "30", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_rampboost, "g_rampboost", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_planerjump, "g_planerjump", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_quakeramp, "g_quakeramp", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_accelerate, "g_accelerate", "10", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_slickaccelerate, "g_slickaccelerate", "10", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_airaccelerate, "g_airaccelerate", "1", CVAR_ARCHIVE, 0, qtrue},

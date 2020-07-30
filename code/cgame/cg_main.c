@@ -312,6 +312,8 @@ vmCvar_t g_strafeaccelerate;
 vmCvar_t g_wishspeed;
 vmCvar_t g_strafewishspeed;
 vmCvar_t g_rampboost;
+vmCvar_t g_planerjump;
+vmCvar_t g_quakeramp;
 vmCvar_t g_accelerate;
 vmCvar_t g_slickaccelerate;
 vmCvar_t g_friction;
@@ -1046,6 +1048,8 @@ static void CG_RegisterSounds(void) {
 	cgs.media.hgrenb1aSound = trap_S_RegisterSound("sound/weapons/grenade/hgrenb1a.wav", qfalse);
 	cgs.media.hgrenb2aSound = trap_S_RegisterSound("sound/weapons/grenade/hgrenb2a.wav", qfalse);
 
+	cgs.media.pingSound = trap_S_RegisterSound("sound/player/ping.wav", qfalse);
+
 #ifdef MISSIONPACK
 	trap_S_RegisterSound("sound/player/sergei/death1.wav", qfalse);
 	trap_S_RegisterSound("sound/player/sergei/death2.wav", qfalse);
@@ -1144,6 +1148,8 @@ static void CG_RegisterGraphics(void) {
 	cgs.media.connectionShader = trap_R_RegisterShader("disconnected");
 
 	cgs.media.waterBubbleShader = trap_R_RegisterShader("waterBubble");
+
+	cgs.media.pingShader = trap_R_RegisterShader("ping");
 
 	cgs.media.tracerShader = trap_R_RegisterShader("gfx/misc/tracer");
 	cgs.media.selectShader = trap_R_RegisterShader("gfx/2d/select");

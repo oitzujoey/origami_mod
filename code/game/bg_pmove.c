@@ -471,23 +471,56 @@ static qboolean PM_CheckJump( void )
 	pm->ps->pm_flags |= PMF_JUMP_HELD;
 
 	pm->ps->groundEntityNum = ENTITYNUM_NONE;
-	
-	// Ramp boost
-	// I can't believe that this is all that is required.
-	// All the hard work is done by PM_ClipVelocity!
-	if (g_rampboost.integer) {
-		pm->ps->velocity[2] += JUMP_VELOCITY;
-		if (pm->ps->velocity[2] < JUMP_VELOCITY)
-			pm->ps->velocity[2] = JUMP_VELOCITY;
+
+	// Wall jump
+	if (g_planerjump.integer) {
+		// Technically always uses rampboost. g_rampboost allows accumulative jumps though.
+		// A situation where you may notice this is ... I don't really know. PM_ClipVelocity
+		// does a pretty good job.
+		if (g_rampboost.integer) {
+			// Add jump to velocity.
+			VectorMA(pm->ps->velocity, JUMP_VELOCITY, pml.groundTrace.plane.normal, pm->ps->velocity);
+			// Make sure we are going at least the minimum jump speed.
+			if ( DotProduct(pm->ps->velocity, pml.groundTrace.plane.normal) < JUMP_VELOCITY ) {
+				// Completely remove movement normal to the surface using a projection.
+				// This means that we will tend to hug surfaces.
+				ProjectPointOnPlane(pm->ps->velocity, pm->ps->velocity, pml.groundTrace.plane.normal);
+
+				// Jump again, properly this time. This is the 3D equivalent of a normal Q3A jump.
+				VectorMA(pm->ps->velocity, JUMP_VELOCITY, pml.groundTrace.plane.normal, pm->ps->velocity);
+			}
+		}
+		else {
+			ProjectPointOnPlane(pm->ps->velocity, pm->ps->velocity, pml.groundTrace.plane.normal);
+			VectorMA(pm->ps->velocity, JUMP_VELOCITY, pml.groundTrace.plane.normal, pm->ps->velocity);
+		}
+
+		// Double jump. Feels about the same as normal CPM.
+		// Frequently occurs when going from a downward slope to level.
+		if (g_doublejump.value) {
+			if (jump_timer > 0)
+				VectorMA(pm->ps->velocity, g_doublejump.value, pml.groundTrace.plane.normal, pm->ps->velocity);
+			jump_timer = 400;
+		}
 	}
-	else
-		pm->ps->velocity[2] = JUMP_VELOCITY;
-	
-	// Double jump
-	if (g_doublejump.value) {
-		if (jump_timer > 0)
-			pm->ps->velocity[2] += g_doublejump.value;
-		jump_timer = 400;
+	else {
+		// Ramp boost
+		// I can't believe that this is all that is required.
+		// All the hard work is done by PM_ClipVelocity!
+		if (g_rampboost.integer) {
+			pm->ps->velocity[2] += JUMP_VELOCITY;
+			if (pm->ps->velocity[2] < JUMP_VELOCITY)
+				pm->ps->velocity[2] = JUMP_VELOCITY;
+		}
+		else
+			pm->ps->velocity[2] = JUMP_VELOCITY;
+		
+		// Double jump
+		if (g_doublejump.value) {
+			if (jump_timer > 0)
+				pm->ps->velocity[2] += g_doublejump.value;
+			jump_timer = 400;
+		}
 	}
 
 	PM_AddEvent( EV_JUMP );

@@ -83,6 +83,8 @@ extern	vmCvar_t g_slickaccelerate;
 extern	vmCvar_t g_airaccelerate;
 extern	vmCvar_t g_friction;
 extern	vmCvar_t g_rampboost;
+extern	vmCvar_t g_planerjump;
+extern	vmCvar_t g_quakeramp;
 extern	vmCvar_t g_crouchfriction;
 extern	vmCvar_t g_crouchdrop;
 extern	vmCvar_t g_teleportprojectiles;

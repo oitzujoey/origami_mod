@@ -1189,6 +1189,8 @@ extern vmCvar_t g_strafeaccelerate;
 extern vmCvar_t g_wishspeed;
 extern vmCvar_t g_strafewishspeed;
 extern vmCvar_t g_rampboost;
+extern vmCvar_t g_planerjump;
+extern vmCvar_t g_quakeramp;
 extern vmCvar_t g_accelerate;
 extern vmCvar_t g_slickaccelerate;
 extern vmCvar_t g_airaccelerate;
