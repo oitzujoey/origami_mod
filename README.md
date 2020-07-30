@@ -10,6 +10,7 @@
 | float | g_strafeaccelerate    | Server | 1       | Air acceleration that is only applied when strafing in a CPM-like mode (g_cpmkbd || g_orikbd)     |
 | float | g_wishspeed           | Server | 400     | The thing that makes you go slow in Q1                                                            |
 | bool | g_rampboost           | Server | 0       | Give a boost when jumping up ramps. |
+| bool | g_quakeramp | Server | 0 | Use Quake ramp physics. |
 | float | g_acclerate           | Server | 10      | pm_accelerate: Ground acceleration                                                                |
 | float | g_airacclerate        | Server | 1       | pm_airaccelerate: Air acceleration                                                                |
 | float | g_friction            | Server | 6       | pm_friction: Ground friction                                                                      |
