@@ -43,8 +43,11 @@ typedef struct {
 	int			msec;
 
 	qboolean	walking;
+	qboolean	wall;
 	qboolean	groundPlane;
 	trace_t		groundTrace;
+	qboolean	wallPlane;
+	trace_t		wallTrace;
 
 	float		impactSpeed;
 
@@ -82,13 +85,20 @@ extern	vmCvar_t g_accelerate;
 extern	vmCvar_t g_slickaccelerate;
 extern	vmCvar_t g_airaccelerate;
 extern	vmCvar_t g_friction;
-extern	vmCvar_t g_rampboost;
+extern	vmCvar_t g_rampjump;
+extern	vmCvar_t g_stepsmoothing;
 extern	vmCvar_t g_planerjump;
+extern	vmCvar_t g_walljump;
 extern	vmCvar_t g_quakeramp;
 extern	vmCvar_t g_crouchfriction;
 extern	vmCvar_t g_crouchdrop;
 extern	vmCvar_t g_teleportprojectiles;
 extern	vmCvar_t g_orikbd;
+extern	vmCvar_t g_overbounce;
+extern	vmCvar_t g_excessiveoverbounce;
+extern	vmCvar_t g_lift;
+extern	vmCvar_t g_liftratioup;
+extern	vmCvar_t g_liftratiodown;
 
 void PM_ClipVelocity( vec3_t in, vec3_t normal, vec3_t out, float overbounce );
 void PM_AddTouchEnt( int entityNum );

@@ -311,8 +311,10 @@ vmCvar_t g_aircontrol;
 vmCvar_t g_strafeaccelerate;
 vmCvar_t g_wishspeed;
 vmCvar_t g_strafewishspeed;
-vmCvar_t g_rampboost;
+vmCvar_t g_rampjump;
+vmCvar_t g_stepsmoothing;
 vmCvar_t g_planerjump;
+vmCvar_t g_walljump;
 vmCvar_t g_quakeramp;
 vmCvar_t g_accelerate;
 vmCvar_t g_slickaccelerate;
@@ -324,6 +326,11 @@ vmCvar_t g_backpack;
 vmCvar_t g_airaccelerate;
 vmCvar_t g_teleportprojectiles;
 vmCvar_t g_orikbd;
+vmCvar_t g_overbounce;
+vmCvar_t g_excessiveoverbounce;
+vmCvar_t g_lift;
+vmCvar_t g_liftratioup;
+vmCvar_t g_liftratiodown;
 
 typedef struct {
 	vmCvar_t *vmCvar;
@@ -541,8 +548,34 @@ static cvarTable_t cvarTable[] = {// bk001129
 	{ &cg_missionpackChecks, "missionpackChecks", "1", CVAR_ARCHIVE},
 /* /Neon_Knight */
 /* Neon_Knight: Enables MP checks. */
-	{ &cg_developer, "developer", "0", CVAR_CHEAT}
+	{ &cg_developer, "developer", "0", CVAR_CHEAT},
 /* /Neon_Knight */
+	/* Origami mod */
+	{ &g_doublejump, "g_doublejump", "0", CVAR_ARCHIVE},
+	{ &g_aircontrol, "g_aircontrol", "0", CVAR_ARCHIVE},
+	{ &g_strafeaccelerate, "g_strafeaccelerate", "1", CVAR_ARCHIVE},
+	{ &g_wishspeed, "g_wishspeed", "400", CVAR_ARCHIVE},
+	{ &g_strafewishspeed, "g_strafewishspeed", "30", CVAR_ARCHIVE},
+	{ &g_rampjump, "g_rampjump", "0", CVAR_ARCHIVE},
+	{ &g_stepsmoothing, "g_stepsmoothing", "0", CVAR_ARCHIVE},
+	{ &g_planerjump, "g_planerjump", "0", CVAR_ARCHIVE},
+	{ &g_walljump, "g_walljump", "0", CVAR_ARCHIVE},
+	{ &g_quakeramp, "g_quakeramp", "0", CVAR_ARCHIVE},
+	{ &g_accelerate, "g_accelerate", "10", CVAR_ARCHIVE},
+	{ &g_slickaccelerate, "g_slickaccelerate", "10", CVAR_ARCHIVE},
+	{ &g_airaccelerate, "g_airaccelerate", "1", CVAR_ARCHIVE},
+	{ &g_friction, "g_friction", "6", CVAR_ARCHIVE},
+	{ &g_crouchfriction, "g_crouchfriction", "1", CVAR_ARCHIVE},
+	{ &g_cpmkbd, "g_cpmkbd", "0", CVAR_ARCHIVE},
+	{ &g_crouchdrop, "g_crouchdrop", "0", CVAR_ARCHIVE},
+	{ &g_backpack, "g_backpack", "0", CVAR_ARCHIVE},
+	{ &g_teleportprojectiles, "g_teleportprojectiles", "0", CVAR_ARCHIVE},
+	{ &g_orikbd, "g_orikbd", "0", CVAR_ARCHIVE},
+	{ &g_overbounce, "g_overbounce", "1", CVAR_ARCHIVE},
+	{ &g_excessiveoverbounce, "g_excessiveoverbounce", "0", CVAR_ARCHIVE | CVAR_SERVERINFO},
+	{ &g_lift, "g_lift", "0", CVAR_ARCHIVE},
+	{ &g_liftratioup, "g_liftratioup", "1", CVAR_ARCHIVE},
+	{ &g_liftratiodown, "g_liftratiodown", "1", CVAR_ARCHIVE}
 };
 
 static int cvarTableSize = sizeof ( cvarTable) / sizeof ( cvarTable[0]);
@@ -1048,8 +1081,6 @@ static void CG_RegisterSounds(void) {
 	cgs.media.hgrenb1aSound = trap_S_RegisterSound("sound/weapons/grenade/hgrenb1a.wav", qfalse);
 	cgs.media.hgrenb2aSound = trap_S_RegisterSound("sound/weapons/grenade/hgrenb2a.wav", qfalse);
 
-	cgs.media.pingSound = trap_S_RegisterSound("sound/player/ping.wav", qfalse);
-
 #ifdef MISSIONPACK
 	trap_S_RegisterSound("sound/player/sergei/death1.wav", qfalse);
 	trap_S_RegisterSound("sound/player/sergei/death2.wav", qfalse);
@@ -1148,8 +1179,6 @@ static void CG_RegisterGraphics(void) {
 	cgs.media.connectionShader = trap_R_RegisterShader("disconnected");
 
 	cgs.media.waterBubbleShader = trap_R_RegisterShader("waterBubble");
-
-	cgs.media.pingShader = trap_R_RegisterShader("ping");
 
 	cgs.media.tracerShader = trap_R_RegisterShader("gfx/misc/tracer");
 	cgs.media.selectShader = trap_R_RegisterShader("gfx/2d/select");

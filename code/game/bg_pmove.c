@@ -51,8 +51,7 @@ float	pm_spectatorfriction = 5.0f;
 
 int		c_pmove = 0;
 
-float crouch_timer;
-float jump_timer;
+static void PM_GroundTrace(void);
 
 extern	vmCvar_t	cg_enableQ;		// leilei - map changes player/weapons scale (for q1 adaptations)
 /*
@@ -192,7 +191,7 @@ static void PM_Friction( void )
 	float	drop;
 	float	duckFriction = 1.0f;
 
-	if ((pm->ps->pm_flags & PMF_DUCKED) || (crouch_timer > 0))
+	if ((pm->ps->pm_flags & PMF_DUCKED) || (pm->ps->stats[STAT_CROUCHTIME] > 0))
 		duckFriction = g_crouchfriction.value;
 
 	vel = pm->ps->velocity;
@@ -222,9 +221,6 @@ static void PM_Friction( void )
 			}
 		}
 	}
-
-	if ( g_quakeramp.integer && pm->ps->velocity[2] > 180 )
-		drop = 0;
 
 	// apply water friction even if just wading
 	if ( pm->waterlevel ) {
@@ -267,13 +263,15 @@ static void PM_AirAccelerate( vec3_t wishdir, float wishspeed, float accel )
 	if(! (pm->pmove_flags & DF_NO_BUNNY) ) {
 		// q2 style
 		int			i;
-		float		addspeed, accelspeed, currentspeed;
+		float		addspeed, accelspeed, currentspeed, clippedwishspeed;
 
-		if (wishspeed > g_wishspeed.value)
-			wishspeed = g_wishspeed.value;
+		clippedwishspeed = wishspeed;
+
+		if (clippedwishspeed > g_wishspeed.value)
+			clippedwishspeed = g_wishspeed.value;
 
 		currentspeed = DotProduct (pm->ps->velocity, wishdir);
-		addspeed = wishspeed - currentspeed;
+		addspeed = clippedwishspeed - currentspeed;
 		if (addspeed <= 0) {
 			return;
 		}
@@ -354,6 +352,44 @@ static void PM_Accelerate( vec3_t wishdir, float wishspeed, float accel )
 		}
 
 		VectorMA( pm->ps->velocity, canPush, pushDir, pm->ps->velocity );
+	}
+}
+
+
+/*
+===================
+PM_Lift
+
+===================
+*/
+static void PM_Lift()
+{
+	vec3_t forward, up;
+	float scale;
+
+	// Find horizontal speed.
+	VectorNormalize2(pml.up, up);
+	VectorNormalize2(pml.forward, forward);
+
+	// Reduce the lift depending on the angle between the player's velocity
+	// and their orientation.
+	scale = -DotProduct (pm->ps->velocity, up) * g_lift.value;
+
+	// Allow the player to jump full height.
+	if (scale < 0)
+		scale = 0;
+
+	// Clip the velocity. This is an under-clip.
+	// VectorMA(pm->ps->velocity, scale, up, pm->ps->velocity);
+	if (pm->ps->velocity[2] > 0) {
+		pm->ps->velocity[0] += scale * up[0] * g_liftratioup.value;
+		pm->ps->velocity[1] += scale * up[1] * g_liftratioup.value;
+		pm->ps->velocity[2] += scale * up[2];
+	}
+	else {
+		pm->ps->velocity[0] += scale * up[0] * g_liftratiodown.value;
+		pm->ps->velocity[1] += scale * up[1] * g_liftratiodown.value;
+		pm->ps->velocity[2] += scale * up[2];
 	}
 }
 
@@ -450,6 +486,9 @@ PM_CheckJump
 */
 static qboolean PM_CheckJump( void )
 {
+	vec3_t normal;
+	vec3_t velocity;
+
 	if ( pm->ps->pm_flags & PMF_RESPAWNED ) {
 		return qfalse;		// don't allow jump until all buttons are up
 	}
@@ -466,62 +505,146 @@ static qboolean PM_CheckJump( void )
 		return qfalse;
 	}
 
+	// Kill overbounce post jump.
+	pm->ps->stats[STAT_OVERBOUNCE] &= ~(1<<OB_DOOB);
+
+	// Ground jump
+	if ( pml.walking ) {
+		// Jump normal to surface.
+		if (g_planerjump.integer) {
+			// Technically always uses rampboost. g_rampjump allows accumulative jumps though.
+			// A situation where you may notice this is ... I don't really know. The fact that
+			// the jumps are normal to the surface may sometimes prevent jumping up slopes.
+			if (g_rampjump.integer) {
+				// Add jump to velocity.
+				VectorMA(pm->ps->velocity, JUMP_VELOCITY, pml.wallTrace.plane.normal, pm->ps->velocity);
+				// Make sure we are going at least the minimum jump speed.
+				if ( DotProduct(pm->ps->velocity, pml.wallTrace.plane.normal) < JUMP_VELOCITY ) {
+					// Completely remove movement normal to the surface using a projection.
+					// This means that we will tend to hug surfaces.
+					ProjectPointOnPlane(pm->ps->velocity, pm->ps->velocity, pml.wallTrace.plane.normal);
+
+					// Jump again, properly this time. This is the 3D equivalent of a normal Q3A jump.
+					VectorMA(pm->ps->velocity, JUMP_VELOCITY, pml.wallTrace.plane.normal, pm->ps->velocity);
+				}
+			}
+			else {
+				ProjectPointOnPlane(pm->ps->velocity, pm->ps->velocity, pml.wallTrace.plane.normal);
+				VectorMA(pm->ps->velocity, JUMP_VELOCITY, pml.wallTrace.plane.normal, pm->ps->velocity);
+			}
+
+			// Double jump. Feels about the same as normal CPM.
+			// Frequently occurs when going from a downward slope to level.
+			if (g_doublejump.value) {
+				if (pm->ps->stats[STAT_JUMPTIME] > 0)
+					VectorMA(pm->ps->velocity, g_doublejump.value, pml.wallTrace.plane.normal, pm->ps->velocity);
+				pm->ps->stats[STAT_JUMPTIME] = 400;
+			}
+		}
+		// Standard jump
+		else {
+			// Ramp boost
+			// I can't believe that this is all that is required.
+			// All the hard work is done by PM_ClipVelocity!
+			if (g_rampjump.integer) {
+				pm->ps->velocity[2] += JUMP_VELOCITY;
+				if (pm->ps->velocity[2] < JUMP_VELOCITY)
+					pm->ps->velocity[2] = JUMP_VELOCITY;
+			}
+			else
+				pm->ps->velocity[2] = JUMP_VELOCITY;
+			
+			// Double jump
+			if (g_doublejump.value) {
+				if (pm->ps->stats[STAT_JUMPTIME] > 0)
+					pm->ps->velocity[2] += g_doublejump.value;
+				pm->ps->stats[STAT_JUMPTIME] = 400;
+			}
+		}
+	}
+	// Wall jump
+	else {
+		// Jump normal to surface. For planerjumps, let's try bouncing instead.
+		if (g_planerjump.integer) {
+			// Technically always uses rampboost. g_rampjump allows accumulative jumps though.
+			// A situation where you may notice this is ... I don't really know. The fact that
+			// the jumps are normal to the surface may sometimes prevent jumping up slopes.
+			if (g_rampjump.integer) {
+				// Add jump to velocity.
+				VectorMA(pm->ps->velocity, JUMP_VELOCITY, pml.wallTrace.plane.normal, pm->ps->velocity);
+				// Make sure we are going at least the minimum jump speed.
+				if ( DotProduct(pm->ps->velocity, pml.wallTrace.plane.normal) < JUMP_VELOCITY ) {
+					// Completely remove movement normal to the surface using a projection.
+					// This means that we will tend to hug surfaces.
+					ProjectPointOnPlane(pm->ps->velocity, pm->ps->velocity, pml.wallTrace.plane.normal);
+
+					// Jump again, properly this time. This is the 3D equivalent of a normal Q3A jump.
+					VectorMA(pm->ps->velocity, JUMP_VELOCITY, pml.wallTrace.plane.normal, pm->ps->velocity);
+				}
+			}
+			else {
+				ProjectPointOnPlane(pm->ps->velocity, pm->ps->velocity, pml.wallTrace.plane.normal);
+				VectorMA(pm->ps->velocity, JUMP_VELOCITY, pml.wallTrace.plane.normal, pm->ps->velocity);
+			}
+
+			// Double jump. Feels about the same as normal CPM.
+			// Frequently occurs when going from a downward slope to level.
+			if (g_doublejump.value) {
+				if (pm->ps->stats[STAT_JUMPTIME] > 200)
+					VectorMA(pm->ps->velocity, g_doublejump.value, pml.wallTrace.plane.normal, pm->ps->velocity);
+				pm->ps->stats[STAT_JUMPTIME] = 400;
+			}
+		}
+		// Standard jump
+		else {
+			// Ramp jump
+			if (g_rampjump.integer) {
+				VectorCopy(pml.wallTrace.plane.normal, normal);
+				normal[2] = 0.0f;
+				VectorNormalize(normal);
+				VectorMA(pm->ps->velocity, JUMP_VELOCITY, normal, pm->ps->velocity);
+
+				VectorCopy(pm->ps->velocity, velocity);
+				velocity[2] = 0;
+				if ( DotProduct(velocity, normal) < JUMP_VELOCITY ) {
+					ProjectPointOnPlane(pm->ps->velocity, pm->ps->velocity, normal);
+
+					VectorCopy(pml.wallTrace.plane.normal, normal);
+					normal[2] = 0.0f;
+					VectorNormalize(normal);
+					VectorMA(pm->ps->velocity, JUMP_VELOCITY, normal, pm->ps->velocity);
+				}
+			}
+			// Jump
+			else {
+				ProjectPointOnPlane(pm->ps->velocity, pm->ps->velocity, normal);
+
+				VectorCopy(pml.wallTrace.plane.normal, normal);
+				normal[2] = 0.0f;
+				VectorNormalize(normal);
+				VectorMA(pm->ps->velocity, JUMP_VELOCITY, normal, pm->ps->velocity);
+			}
+			
+			// Double jump
+			if (g_doublejump.value) {
+				if (pm->ps->stats[STAT_JUMPTIME] > 200) {
+					VectorCopy(pml.wallTrace.plane.normal, normal);
+					normal[2] = 0.0f;
+					VectorNormalize(normal);
+					VectorMA(pm->ps->velocity, g_doublejump.value, normal, pm->ps->velocity);
+				}
+				pm->ps->stats[STAT_JUMPTIME] = 400;
+			}
+		}
+	}
+
+	// Do this afterward to allow wall-jump specific rules.
 	pml.groundPlane = qfalse;		// jumping away
 	pml.walking = qfalse;
+	pml.wallPlane = qfalse;
 	pm->ps->pm_flags |= PMF_JUMP_HELD;
 
 	pm->ps->groundEntityNum = ENTITYNUM_NONE;
-
-	// Wall jump
-	if (g_planerjump.integer) {
-		// Technically always uses rampboost. g_rampboost allows accumulative jumps though.
-		// A situation where you may notice this is ... I don't really know. PM_ClipVelocity
-		// does a pretty good job.
-		if (g_rampboost.integer) {
-			// Add jump to velocity.
-			VectorMA(pm->ps->velocity, JUMP_VELOCITY, pml.groundTrace.plane.normal, pm->ps->velocity);
-			// Make sure we are going at least the minimum jump speed.
-			if ( DotProduct(pm->ps->velocity, pml.groundTrace.plane.normal) < JUMP_VELOCITY ) {
-				// Completely remove movement normal to the surface using a projection.
-				// This means that we will tend to hug surfaces.
-				ProjectPointOnPlane(pm->ps->velocity, pm->ps->velocity, pml.groundTrace.plane.normal);
-
-				// Jump again, properly this time. This is the 3D equivalent of a normal Q3A jump.
-				VectorMA(pm->ps->velocity, JUMP_VELOCITY, pml.groundTrace.plane.normal, pm->ps->velocity);
-			}
-		}
-		else {
-			ProjectPointOnPlane(pm->ps->velocity, pm->ps->velocity, pml.groundTrace.plane.normal);
-			VectorMA(pm->ps->velocity, JUMP_VELOCITY, pml.groundTrace.plane.normal, pm->ps->velocity);
-		}
-
-		// Double jump. Feels about the same as normal CPM.
-		// Frequently occurs when going from a downward slope to level.
-		if (g_doublejump.value) {
-			if (jump_timer > 0)
-				VectorMA(pm->ps->velocity, g_doublejump.value, pml.groundTrace.plane.normal, pm->ps->velocity);
-			jump_timer = 400;
-		}
-	}
-	else {
-		// Ramp boost
-		// I can't believe that this is all that is required.
-		// All the hard work is done by PM_ClipVelocity!
-		if (g_rampboost.integer) {
-			pm->ps->velocity[2] += JUMP_VELOCITY;
-			if (pm->ps->velocity[2] < JUMP_VELOCITY)
-				pm->ps->velocity[2] = JUMP_VELOCITY;
-		}
-		else
-			pm->ps->velocity[2] = JUMP_VELOCITY;
-		
-		// Double jump
-		if (g_doublejump.value) {
-			if (jump_timer > 0)
-				pm->ps->velocity[2] += g_doublejump.value;
-			jump_timer = 400;
-		}
-	}
 
 	PM_AddEvent( EV_JUMP );
 
@@ -750,6 +873,7 @@ static void PM_AirMove( void )
 	float		scale;
 	usercmd_t	cmd;
 	vec3_t		velocity;
+	// vec3_t		origin;
 	float		speed;
 	float		angle;
 
@@ -807,12 +931,52 @@ static void PM_AirMove( void )
 
 		velocity[0] += g_aircontrol.value * wishdir[0] * angle * pml.frametime;
 		velocity[1] += g_aircontrol.value * wishdir[1] * angle * pml.frametime;
-		VectorNormalize(velocity);
+
+		// // This is an attempt at air control that acts like Quake strafing.
+		// // It works, but I doubt that people would appreciate that turning too quickly
+		// // results in complete loss of control. To recover, move the mouse closer to
+		// // the direction of your momentum.
+		// // 400 is good.
+		// addspeed = g_aircontrol.value - abs(velocity[0]*wishdir[1] - velocity[1]*wishdir[0]);
+
+		// if (addspeed > 0) {
+		// 	accelspeed = 2100*pml.frametime;
+		// 	if (accelspeed > addspeed) {
+		// 		accelspeed = addspeed;
+		// 	}
+		// 	accelspeed = addspeed;
+
+		// 	for (i=0 ; i<2 ; i++) {
+		// 		velocity[i] += accelspeed*wishdir[i];
+		// 	}
+		// 	// velocity[0] += accelspeed*wishdir[1];
+		// 	// velocity[1] += accelspeed*wishdir[0];
+
+		// 	if ( VectorLength(velocity) < speed )
+		// 		speed = 1.0f;
+		// 	else
+		// 		VectorNormalize(velocity);
+
+		// 	for (i=0 ; i<2 ; i++) {
+		// 		pm->ps->velocity[i] = speed*velocity[i];
+		// 	}
+		// }
+
+		if ( VectorLength(velocity) < speed )
+			speed = 1.0f;
+		else
+			VectorNormalize(velocity);
 
 		for (i=0 ; i<2 ; i++) {
 			pm->ps->velocity[i] = speed*velocity[i];
 		}
 	}
+
+	VectorCopy(pm->ps->velocity, velocity);
+	// VectorCopy(pm->ps->origin, origin);
+
+	if (pm->cmd.upmove > 10)
+		PM_Lift();
 
 	// we may have a ground plane that is very steep, even
 	// though we don't have a groundentity
@@ -833,6 +997,37 @@ static void PM_AirMove( void )
 #endif
 
 	PM_StepSlideMove ( qtrue );
+
+	// Did we collide with the ground? No? Set the overbounce flag.
+	// zspeed and pm->ps->veloicty[2] are both negative in a fall.
+	// If they are both positive, the result shouldn't matter.
+	if ( velocity[2] < pm->ps->velocity[2] )
+		pm->ps->stats[STAT_OVERBOUNCE] &= ~(1<<OB_MAYHAPPEN);
+	else
+		pm->ps->stats[STAT_OVERBOUNCE] |= (1<<OB_MAYHAPPEN);
+
+	if ( g_excessiveoverbounce.integer ) {
+		PM_GroundTrace();
+
+		if ( (pm->ps->stats[STAT_OVERBOUNCE] & 1<<OB_DOOB) && pml.groundPlane ) {
+
+			if ( g_overbounce.integer && ( pm->ps->stats[STAT_OVERBOUNCE] & (1<<OB_MAYHAPPEN) ) ) {
+				return;
+			}
+
+			// slide along the ground plane, remembering to add a small vertial velocity.
+			PM_ClipVelocity (velocity, pml.groundTrace.plane.normal,
+							pm->ps->velocity, 1.01f );
+
+			// don't decrease velocity when going up or down a slope
+			VectorNormalize(pm->ps->velocity);
+			VectorScale(pm->ps->velocity, VectorLength(velocity), pm->ps->velocity);
+
+			// VectorCopy(origin, pm->ps->origin);
+
+			pm->ps->stats[STAT_OVERBOUNCE] &= ~(1<<OB_DOOB);
+		}
+	}
 }
 
 /*
@@ -860,6 +1055,7 @@ static void PM_GrappleMove( void )
 	VectorCopy(vel, pm->ps->velocity);
 
 	pml.groundPlane = qfalse;
+	pml.wallPlane = qfalse;
 }
 
 /*
@@ -886,17 +1082,21 @@ static void PM_WalkMove( void )
 		return;
 	}
 
-
-	if ( PM_CheckJump () ) {
+	if ( PM_CheckJump () ||
+			( ( pm->ps->stats[STAT_OVERBOUNCE] & (1<<OB_MAYHAPPEN) ) && !g_overbounce.integer ) ) {
 		// jumped away
 		if ( pm->waterlevel > 1 ) {
 			PM_WaterMove();
 		}
 		else {
 			PM_AirMove();
+			pm->ps->stats[STAT_OVERBOUNCE] &= ~(1<<OB_MAYHAPPEN);
 		}
 		return;
 	}
+
+	// Allow excessive overbounce when the last action was walking.
+	pm->ps->stats[STAT_OVERBOUNCE] |= (1<<OB_DOOB);
 
 	PM_Friction ();
 
@@ -928,11 +1128,19 @@ static void PM_WalkMove( void )
 	wishspeed = VectorNormalize(wishdir);
 	wishspeed *= scale;
 
+	// when a player gets hit, they temporarily lose
+	// full control, which allows them to be moved a bit
+	if ( ( pml.groundTrace.surfaceFlags & SURF_SLICK ) || pm->ps->pm_flags & PMF_TIME_KNOCKBACK )
+		accelerate = g_slickaccelerate.value;
+	else
+		accelerate = g_accelerate.value;
+
 	// clamp the speed lower if ducking
 	if ( pm->ps->pm_flags & PMF_DUCKED ) {
 		if ( wishspeed > pm->ps->speed * pm_duckScale ) {
 			wishspeed = pm->ps->speed * pm_duckScale;
 		}
+		accelerate /= pm_duckScale;
 	}
 
 	// clamp the speed lower if wading or walking on the bottom
@@ -944,14 +1152,8 @@ static void PM_WalkMove( void )
 		if ( wishspeed > pm->ps->speed * waterScale ) {
 			wishspeed = pm->ps->speed * waterScale;
 		}
+		accelerate /= waterScale;
 	}
-
-	// when a player gets hit, they temporarily lose
-	// full control, which allows them to be moved a bit
-	if ( ( pml.groundTrace.surfaceFlags & SURF_SLICK ) || pm->ps->pm_flags & PMF_TIME_KNOCKBACK )
-		accelerate = g_slickaccelerate.value;
-	else
-		accelerate = g_accelerate.value;
 
 	PM_Accelerate (wishdir, wishspeed, accelerate);
 
@@ -959,6 +1161,7 @@ static void PM_WalkMove( void )
 		pm->ps->velocity[2] -= pm->ps->gravity * pml.frametime;
 	}
 
+	// Do overbounce -- Joey
 	vel = VectorLength(pm->ps->velocity);
 
 	// slide along the ground plane
@@ -968,6 +1171,7 @@ static void PM_WalkMove( void )
 	// don't decrease velocity when going up or down a slope
 	VectorNormalize(pm->ps->velocity);
 	VectorScale(pm->ps->velocity, vel, pm->ps->velocity);
+	// End overbounce
 
 	// don't do anything if standing still
 	if (!pm->ps->velocity[0] && !pm->ps->velocity[1]) {
@@ -985,23 +1189,23 @@ PM_DeadMove
 */
 static void PM_DeadMove( void )
 {
-	float	forward;
+	// float	forward;
 
-	if ( !pml.walking ) {
-		return;
-	}
+	// if ( !pml.walking ) {
+	// 	return;
+	// }
 
-	// extra friction
+	// // extra friction
 
-	forward = VectorLength (pm->ps->velocity);
-	forward -= 20;
-	if ( forward <= 0 ) {
-		VectorClear (pm->ps->velocity);
-	}
-	else {
-		VectorNormalize (pm->ps->velocity);
-		VectorScale (pm->ps->velocity, forward, pm->ps->velocity);
-	}
+	// forward = VectorLength (pm->ps->velocity);
+	// forward -= 20;
+	// if ( forward <= 0 ) {
+	// 	VectorClear (pm->ps->velocity);
+	// }
+	// else {
+	// 	VectorNormalize (pm->ps->velocity);
+	// 	VectorScale (pm->ps->velocity, forward, pm->ps->velocity);
+	// }
 }
 
 
@@ -1216,6 +1420,7 @@ static int PM_CorrectAllSolid( trace_t *trace )
 
 	pm->ps->groundEntityNum = ENTITYNUM_NONE;
 	pml.groundPlane = qfalse;
+	pml.wallPlane = qfalse;
 	pml.walking = qfalse;
 
 	return qfalse;
@@ -1261,6 +1466,39 @@ static void PM_GroundTraceMissed( void )
 	pm->ps->groundEntityNum = ENTITYNUM_NONE;
 	pml.groundPlane = qfalse;
 	pml.walking = qfalse;
+}
+
+
+/*
+=============
+PM_WallTrace
+=============
+*/
+static void PM_WallTrace( void )
+{
+	vec3_t		point;
+	trace_t		trace;
+	int			i, j, k;
+
+	for ( i = -1; i <= 1 ; i++ ) {
+		for ( j = -1; j <= 1 ; j++ ) {
+			for ( k = -1; k <= 1 ; k++ ) {
+				point[0] = pm->ps->origin[0] + 0.25 * ((float) i);
+				point[1] = pm->ps->origin[1] + 0.25 * ((float) j);
+				point[2] = pm->ps->origin[2] + 0.25 * ((float) k);
+
+				pm->trace (&trace, pm->ps->origin, pm->mins, pm->maxs, point, pm->ps->clientNum, pm->tracemask);
+				pml.wallTrace = trace;
+
+				// if the trace didn't hit anything, we are in free fall
+				if ( trace.fraction != 1.0 ) {
+					pml.wallPlane = qtrue;
+					return;
+				}
+			}
+		}
+	}
+	pml.wallPlane = qfalse;
 }
 
 
@@ -1323,6 +1561,16 @@ static void PM_GroundTrace( void )
 		}
 		// FIXME: if they can't slide down the slope, let them
 		// walk (sharp crevices)
+		pm->ps->groundEntityNum = ENTITYNUM_NONE;
+		pml.groundPlane = qtrue;
+		pml.walking = qfalse;
+		return;
+	}
+
+	if ( g_quakeramp.integer && pm->ps->velocity[2] > 180 ) {
+		if ( pm->debugLevel ) {
+			Com_Printf("%i:speed\n", c_pmove);
+		}
 		pm->ps->groundEntityNum = ENTITYNUM_NONE;
 		pml.groundPlane = qtrue;
 		pml.walking = qfalse;
@@ -1456,7 +1704,7 @@ static void PM_CheckDuck (void)
 			pm->trace (&trace, pm->ps->origin, pm->mins, pm->maxs, pm->ps->origin, pm->ps->clientNum, pm->tracemask );
 			if (!trace.allsolid) {
 				pm->ps->pm_flags &= ~PMF_DUCKED;
-				crouch_timer = 400;
+				pm->ps->stats[STAT_CROUCHTIME] = 400;
 			}
 		}
 	}
@@ -2057,18 +2305,18 @@ static void PM_DropTimers( void )
 	}
 
 	// drop post-crouch counter
-	if ( crouch_timer > 0 ) {
-		crouch_timer -= pml.msec;
-		if ( crouch_timer < 0 ) {
-			crouch_timer = 0;
+	if ( pm->ps->stats[STAT_CROUCHTIME] > 0 ) {
+		pm->ps->stats[STAT_CROUCHTIME] -= pml.msec;
+		if ( pm->ps->stats[STAT_CROUCHTIME] < 0 ) {
+			pm->ps->stats[STAT_CROUCHTIME] = 0;
 		}
 	}
 
 	// drop post-jump counter
-	if ( jump_timer > 0 ) {
-		jump_timer -= pml.msec;
-		if ( jump_timer < 0 ) {
-			jump_timer = 0;
+	if ( pm->ps->stats[STAT_JUMPTIME] > 0 ) {
+		pm->ps->stats[STAT_JUMPTIME] -= pml.msec;
+		if ( pm->ps->stats[STAT_JUMPTIME] < 0 ) {
+			pm->ps->stats[STAT_JUMPTIME] = 0;
 		}
 	}
 }
@@ -2255,6 +2503,7 @@ void PmoveSingle (pmove_t *pmove)
 
 	// set groundentity
 	PM_GroundTrace();
+	PM_WallTrace();
 
 	if ( pm->ps->pm_type == PM_DEAD ) {
 		PM_DeadMove ();
@@ -2287,6 +2536,9 @@ void PmoveSingle (pmove_t *pmove)
 	}
 	else {
 		// airborne
+		if ( g_walljump.integer && pml.wallPlane ) {
+			PM_CheckJump();
+		}
 		PM_AirMove();
 	}
 
@@ -2294,6 +2546,7 @@ void PmoveSingle (pmove_t *pmove)
 
 	// set groundentity, watertype, and waterlevel
 	PM_GroundTrace();
+	PM_WallTrace();
 	PM_SetWaterLevel();
 
 	// weapons

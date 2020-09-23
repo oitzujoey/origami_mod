@@ -277,6 +277,7 @@ void PM_StepSlideMove( qboolean gravity ) {
 	VectorCopy (start_o, up);
 	up[2] += STEPSIZE;
 
+	// See if we can step up without bonking our head. -- Joey
 	// test the player position if they were a stepheight higher
 	pm->trace (&trace, start_o, pm->mins, pm->maxs, up, pm->ps->clientNum, pm->tracemask);
 	if ( trace.allsolid ) {
@@ -301,7 +302,8 @@ void PM_StepSlideMove( qboolean gravity ) {
 		VectorCopy (trace.endpos, pm->ps->origin);
 	}
 	if ( trace.fraction < 1.0 ) {
-		PM_ClipVelocity( pm->ps->velocity, trace.plane.normal, pm->ps->velocity, OVERCLIP );
+		if ( !g_stepsmoothing.integer )
+			PM_ClipVelocity( pm->ps->velocity, trace.plane.normal, pm->ps->velocity, OVERCLIP );
 	}
 
 #if 0

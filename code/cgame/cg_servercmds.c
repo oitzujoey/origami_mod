@@ -380,6 +380,9 @@ void CG_ParseServerinfo( void ) {
 
 	//Copy allowed votes directly to the client:
 	trap_Cvar_Set("cg_voteflags",Info_ValueForKey( info, "voteflags" ) );
+
+	// Physics
+	trap_Cvar_Set( "g_excessiveoverbounce", Info_ValueForKey( info, "g_excessiveoverbounce" ) );
 }
 
 /*

@@ -251,8 +251,16 @@ typedef enum {
 	STAT_DEAD_YAW,					// look this direction when dead (FIXME: get rid of?)
 	STAT_CLIENTS_READY,				// bit mask of clients wishing to exit the intermission (FIXME: configstring?)
 	STAT_MAX_HEALTH,					// health / armor limit, changable by handicap
-	STAT_PERSISTANT_POWERUP
+	STAT_PERSISTANT_POWERUP,
+	STAT_OVERBOUNCE,				// Overbounce related flags.
+	STAT_JUMPTIME,
+	STAT_CROUCHTIME
 } statIndex_t;
+
+typedef enum {
+	OB_MAYHAPPEN,
+	OB_DOOB
+} statOverbounce_t;
 
 
 // player_state->persistant[] indexes

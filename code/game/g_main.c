@@ -201,8 +201,10 @@ vmCvar_t g_aircontrol;
 vmCvar_t g_strafeaccelerate;
 vmCvar_t g_wishspeed;
 vmCvar_t g_strafewishspeed;
-vmCvar_t g_rampboost;
+vmCvar_t g_rampjump;
+vmCvar_t g_stepsmoothing;
 vmCvar_t g_planerjump;
+vmCvar_t g_walljump;
 vmCvar_t g_quakeramp;
 vmCvar_t g_accelerate;
 vmCvar_t g_slickaccelerate;
@@ -215,6 +217,11 @@ vmCvar_t g_airaccelerate;
 vmCvar_t g_teleportprojectiles;
 vmCvar_t g_orikbd;
 vmCvar_t g_lightningdischarge;
+vmCvar_t g_overbounce;
+vmCvar_t g_excessiveoverbounce;
+vmCvar_t g_lift;
+vmCvar_t g_liftratioup;
+vmCvar_t g_liftratiodown;
 
 mapinfo_result_t mapinfo;
 
@@ -438,8 +445,10 @@ static cvarTable_t gameCvarTable[] = {
 	{ &g_strafeaccelerate, "g_strafeaccelerate", "1", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_wishspeed, "g_wishspeed", "400", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_strafewishspeed, "g_strafewishspeed", "30", CVAR_ARCHIVE, 0, qtrue},
-	{ &g_rampboost, "g_rampboost", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_rampjump, "g_rampjump", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_stepsmoothing, "g_stepsmoothing", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_planerjump, "g_planerjump", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_walljump, "g_walljump", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_quakeramp, "g_quakeramp", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_accelerate, "g_accelerate", "10", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_slickaccelerate, "g_slickaccelerate", "10", CVAR_ARCHIVE, 0, qtrue},
@@ -451,7 +460,12 @@ static cvarTable_t gameCvarTable[] = {
 	{ &g_backpack, "g_backpack", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_teleportprojectiles, "g_teleportprojectiles", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_orikbd, "g_orikbd", "0", CVAR_ARCHIVE, 0, qtrue},
-	{ &g_lightningdischarge, "g_lightningdischarge", "0", CVAR_ARCHIVE, 0, qtrue}
+	{ &g_lightningdischarge, "g_lightningdischarge", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_overbounce, "g_overbounce", "1", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_excessiveoverbounce, "g_excessiveoverbounce", "0", CVAR_ARCHIVE | CVAR_SERVERINFO, 0, qtrue},
+	{ &g_lift, "g_lift", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_liftratioup, "g_liftratioup", "1", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_liftratiodown, "g_liftratiodown", "1", CVAR_ARCHIVE, 0, qtrue}
 
 };
 

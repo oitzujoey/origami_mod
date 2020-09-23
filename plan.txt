@@ -15,20 +15,23 @@ Ideas:
     Teleporting projectiles
     Teleporting hitscan?
     Grenades bounce on jump pads
-    Emphasized overbounce
+    Server forces or prevents third person
+    Noiseless (vertical?) overbounce
+    Stairs act like mini-ramps
+    Increase number of displayed custom votes.
 
 Cvars:
     bool g_movetomouse [0]
         Looking up or down reduces the amount players can move (accelerate, technically) when this is on.
     bool g_backpack [0]
-        Drop backpacks like in Q1.
+        Drop backpacks instead of weapons like in Q1.
     bool g_teleportprojectiles [0]
     bool g_allowdrop [0]
     bool g_grenadejumppads [0]
-    float g_overbounce [0]
 
 Commands
     taunt
+    ping
 
 Votes:
     Any new server variables
@@ -38,3 +41,12 @@ Votes:
     promode
     orimode
     Weird Physics
+
+I may need a new engine. Client-server communication is sub optimal, and I really need to send my server cvars to the client in order to do prediction properly.
+
+Here is what I need to do with jumping up stairs. Step up. Only change the origin. Find the difference between the current origin and the origin when we last stepped. This is the slope. Clip the velocity along this vector. PM_ClipVelocity can not be called without computing the normal. Save the origin for next time.
+Note when converting a slope to a normal that clipping always happens in two dimentions. From this I would assume that any normal can be generated as long as the resulting dot product is the same as if it came from a slope.
+Find the plane defined by the slope and velocity. Find the vector that is at a right angle to the slope and is in the same plane. This vector should point upward. Call PM_ClipVelocity.
+And... the above doesn't work, because jumping throws all of the virtual slope calculations off.
+
+Quake and CPM achieve ramp jumping in two different ways. Quake allows accumulating vertical velocity when jumping. CPM does the same thing. This is the essence of the ramp jump. The major difference is that Quake removes friction after you are on the ramp while CPM allows for double jumps. The effect is that Quake focuses more on sliding up ramps (like skiing in real life) and CPM focuses more on jumping up ramps.
