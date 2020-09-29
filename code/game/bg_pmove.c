@@ -548,7 +548,7 @@ static qboolean PM_CheckJump( void )
 			// All the hard work is done by PM_ClipVelocity!
 			if (g_rampjump.integer) {
 				pm->ps->velocity[2] += JUMP_VELOCITY;
-				if (pm->ps->velocity[2] < JUMP_VELOCITY)
+				if (pm->ps->velocity[2] < JUMP_VELOCITY && !g_quakeramp.integer)
 					pm->ps->velocity[2] = JUMP_VELOCITY;
 			}
 			else
