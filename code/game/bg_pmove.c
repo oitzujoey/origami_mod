@@ -362,7 +362,7 @@ PM_Lift
 
 ===================
 */
-static void PM_Lift()
+static void PM_Lift( void )
 {
 	vec3_t forward, up;
 	float scale;
