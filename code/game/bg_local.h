@@ -54,6 +54,8 @@ typedef struct {
 	vec3_t		previous_origin;
 	vec3_t		previous_velocity;
 	int			previous_waterlevel;
+
+	qboolean	jump_queued;
 } pml_t;
 
 extern	pmove_t		*pm;
@@ -89,6 +91,7 @@ extern	vmCvar_t g_rampjump;
 extern	vmCvar_t g_stepsmoothing;
 extern	vmCvar_t g_planerjump;
 extern	vmCvar_t g_walljump;
+extern	vmCvar_t g_quakejump;
 extern	vmCvar_t g_quakeramp;
 extern	vmCvar_t g_crouchfriction;
 extern	vmCvar_t g_crouchdrop;

@@ -484,10 +484,7 @@ static void PM_SetMovementDir( void )
 PM_CheckJump
 =============
 */
-static qboolean PM_CheckJump( void )
-{
-	vec3_t normal;
-	vec3_t velocity;
+static qboolean PM_CheckJump( void ) {
 
 	if ( pm->ps->pm_flags & PMF_RESPAWNED ) {
 		return qfalse;		// don't allow jump until all buttons are up
@@ -505,6 +502,22 @@ static qboolean PM_CheckJump( void )
 		return qfalse;
 	}
 
+	return qtrue;
+}
+
+/*
+============
+PM_DoJump
+============
+*/
+static void PM_DoJump( void )
+{
+	vec3_t normal;
+	vec3_t velocity;
+
+	if (!pml.jump_queued)
+		return;
+
 	// Kill overbounce post jump.
 	pm->ps->stats[STAT_OVERBOUNCE] &= ~(1<<OB_DOOB);
 
@@ -519,7 +532,7 @@ static qboolean PM_CheckJump( void )
 				// Add jump to velocity.
 				VectorMA(pm->ps->velocity, JUMP_VELOCITY, pml.wallTrace.plane.normal, pm->ps->velocity);
 				// Make sure we are going at least the minimum jump speed.
-				if ( DotProduct(pm->ps->velocity, pml.wallTrace.plane.normal) < JUMP_VELOCITY ) {
+				if ( DotProduct(pm->ps->velocity, pml.wallTrace.plane.normal) < JUMP_VELOCITY && !g_quakejump.integer ) {
 					// Completely remove movement normal to the surface using a projection.
 					// This means that we will tend to hug surfaces.
 					ProjectPointOnPlane(pm->ps->velocity, pm->ps->velocity, pml.wallTrace.plane.normal);
@@ -548,7 +561,7 @@ static qboolean PM_CheckJump( void )
 			// All the hard work is done by PM_ClipVelocity!
 			if (g_rampjump.integer) {
 				pm->ps->velocity[2] += JUMP_VELOCITY;
-				if (pm->ps->velocity[2] < JUMP_VELOCITY && !g_quakeramp.integer)
+				if (pm->ps->velocity[2] < JUMP_VELOCITY && !g_quakejump.integer)
 					pm->ps->velocity[2] = JUMP_VELOCITY;
 			}
 			else
@@ -656,8 +669,6 @@ static qboolean PM_CheckJump( void )
 		PM_ForceLegsAnim( LEGS_JUMPB );
 		pm->ps->pm_flags |= PMF_BACKWARDS_JUMP;
 	}
-
-	return qtrue;
 }
 
 /*
@@ -877,7 +888,8 @@ static void PM_AirMove( void )
 	float		speed;
 	float		angle;
 
-	PM_Friction();
+	if (!pml.jump_queued)
+		PM_Friction();
 
 	// Drop faster when crouched.
 	if ( (g_crouchdrop.integer) && (pm->ps->pm_flags & PMF_DUCKED) )
@@ -1082,16 +1094,20 @@ static void PM_WalkMove( void )
 		return;
 	}
 
-	if ( PM_CheckJump () ||
+	if ( (pml.jump_queued = PM_CheckJump ()) ||
 			( ( pm->ps->stats[STAT_OVERBOUNCE] & (1<<OB_MAYHAPPEN) ) && !g_overbounce.integer ) ) {
+		PM_GroundTrace();
 		// jumped away
 		if ( pm->waterlevel > 1 ) {
+			PM_DoJump();
 			PM_WaterMove();
 		}
 		else {
 			PM_AirMove();
+			PM_DoJump();
 			pm->ps->stats[STAT_OVERBOUNCE] &= ~(1<<OB_MAYHAPPEN);
 		}
+		pml.jump_queued = qfalse;
 		return;
 	}
 
@@ -1534,7 +1550,8 @@ static void PM_GroundTrace( void )
 	}
 
 	// check if getting thrown off the ground
-	if ( pm->ps->velocity[2] > 0 && DotProduct( pm->ps->velocity, trace.plane.normal ) > 10 ) {
+	// This was so annoying. The velocity[2] > 0 prevented any jumps that had negative vertical velocities. :(
+	if ( (g_quakejump.integer || pm->ps->velocity[2] > 0) && DotProduct( pm->ps->velocity, trace.plane.normal ) > 10 ) {
 		if ( pm->debugLevel ) {
 			Com_Printf("%i:kickoff\n", c_pmove);
 		}

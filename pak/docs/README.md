@@ -17,6 +17,7 @@
 | float | g_friction | Server, Client | 6 | pm_friction: Ground friction |
 | float | g_crouchfriction | Server, Client | 1 | Reduce (or increase) friction when crouched. This is a factor of g_friction. |
 | bool | g_rampjump | Server, Client | 0 | Allow accumulative jumps. |
+| bool | g_quakejump | Server, Client | 0 | Allow jumps that result in negative vertical velocity. |
 | bool | g_quakeramp | Server, Client | 0 | Use Quake ramp physics. |
 | float | g_doublejump | Server, Client | 0 | Give a boost if a jump is done within 400 ms of the last one. |
 | bool | g_stepsmoothing | Server, Client | 0 | Make accent up stairs easier. Comes at the cost that speed is not increased or decreased when jumping on ramps. |

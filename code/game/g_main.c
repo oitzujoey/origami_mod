@@ -205,6 +205,7 @@ vmCvar_t g_rampjump;
 vmCvar_t g_stepsmoothing;
 vmCvar_t g_planerjump;
 vmCvar_t g_walljump;
+vmCvar_t g_quakejump;
 vmCvar_t g_quakeramp;
 vmCvar_t g_accelerate;
 vmCvar_t g_slickaccelerate;
@@ -449,6 +450,7 @@ static cvarTable_t gameCvarTable[] = {
 	{ &g_stepsmoothing, "g_stepsmoothing", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_planerjump, "g_planerjump", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_walljump, "g_walljump", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_quakejump, "g_quakejump", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_quakeramp, "g_quakeramp", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_accelerate, "g_accelerate", "10", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_slickaccelerate, "g_slickaccelerate", "10", CVAR_ARCHIVE, 0, qtrue},

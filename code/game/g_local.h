@@ -1192,6 +1192,7 @@ extern vmCvar_t g_rampjump;
 extern vmCvar_t g_stepsmoothing;
 extern vmCvar_t g_planerjump;
 extern vmCvar_t g_walljump;
+extern vmCvar_t g_quakejump;
 extern vmCvar_t g_quakeramp;
 extern vmCvar_t g_accelerate;
 extern vmCvar_t g_slickaccelerate;
