@@ -382,6 +382,7 @@ void CG_ParseServerinfo( void ) {
 	trap_Cvar_Set("cg_voteflags",Info_ValueForKey( info, "voteflags" ) );
 
 	// Physics
+	trap_Cvar_Set( "g_movement", Info_ValueForKey( info, "g_movement" ) );
 	trap_Cvar_Set( "g_excessiveoverbounce", Info_ValueForKey( info, "g_excessiveoverbounce" ) );
 }
 

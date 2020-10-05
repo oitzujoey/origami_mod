@@ -240,6 +240,32 @@ void Pmove (pmove_t *pmove);
 
 //===================================================================================
 
+// Movement globals
+typedef struct {
+	float crouchfriction;
+	float friction;
+	float wishspeed;
+	float strafewishspeed;
+	float crouchdrop;
+	float aircontrol;
+	float slickaccelerate;
+	float accelerate;
+	float airaccelerate;
+	float strafeaccelerate;
+	qboolean quakeramp;
+	qboolean quakejump;
+	qboolean doublejump;
+	qboolean cpmkbd;
+	qboolean orikbd;
+} movecfg_t;
+
+#define MOVEMENT_VQ3	0
+#define MOVEMENT_QW		1
+#define MOVEMENT_CPM	2
+#define MOVEMENT_ORI	3
+
+void BG_UpdateMovement( int mode );
+
 
 // player_state->stats[] indexes
 // NOTE: may not have more than 16

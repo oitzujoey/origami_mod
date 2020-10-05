@@ -42,6 +42,8 @@ An item fires all of its targets when it is picked up.  If the toucher can't car
 "count" override quantity or duration on most items.
  */
 
+extern movecfg_t movecfg;
+
 gitem_t bg_itemlist[] ={
 	{
 		NULL,
