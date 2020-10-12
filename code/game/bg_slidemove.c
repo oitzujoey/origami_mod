@@ -242,7 +242,7 @@ PM_StepSlideMove
 ==================
 */
 void PM_StepSlideMove( qboolean gravity ) {
-	vec3_t		start_o, start_v;
+	vec3_t		origin, velocity;
 #if 0
 	vec3_t		down_o, down_v;
 #endif
@@ -251,60 +251,86 @@ void PM_StepSlideMove( qboolean gravity ) {
 //	vec3_t		delta, delta2;
 	vec3_t		up, down;
 	float		stepSize;
+	vec3_t		diff, pseudoNormal;
 
-	VectorCopy (pm->ps->origin, start_o);
-	VectorCopy (pm->ps->velocity, start_v);
+	VectorCopy (pm->ps->origin, origin);
+	VectorCopy (pm->ps->velocity, velocity);
 
 	if ( PM_SlideMove( gravity ) == 0 ) {
-		return;		// we got exactly where we wanted to go first try	
+		return;		// we got exactly where we wanted to go first try
 	}
 
-	VectorCopy(start_o, down);
-	down[2] -= STEPSIZE;
-	pm->trace (&trace, start_o, pm->mins, pm->maxs, down, pm->ps->clientNum, pm->tracemask);
-	VectorSet(up, 0, 0, 1);
-	// never step up when you still have up velocity
-	if ( pm->ps->velocity[2] > 0 && (trace.fraction == 1.0 ||
-										DotProduct(trace.plane.normal, up) < 0.7)) {
-		return;
-	}
+	VectorCopy(origin, pm->ps->origin);
+	VectorCopy(velocity, pm->ps->velocity);
 
-#if 0
-	VectorCopy (pm->ps->origin, down_o);
-	VectorCopy (pm->ps->velocity, down_v);
-#endif
-
-	VectorCopy (start_o, up);
+	VectorCopy(pm->ps->origin, up);
 	up[2] += STEPSIZE;
+	pm->trace (&trace, pm->ps->origin, pm->mins, pm->maxs, up, pm->ps->clientNum, pm->tracemask);
+	
+	stepSize = trace.endpos[2] - pm->ps->origin[2];
+	pm->ps->origin[2] += stepSize;
 
-	// See if we can step up without bonking our head. -- Joey
-	// test the player position if they were a stepheight higher
-	pm->trace (&trace, start_o, pm->mins, pm->maxs, up, pm->ps->clientNum, pm->tracemask);
-	if ( trace.allsolid ) {
-		if ( pm->debugLevel ) {
-			Com_Printf("%i:bend can't step\n", c_pmove);
-		}
-		return;		// can't step up
+	if ( PM_SlideMove( gravity ) == 0 ) {
+		VectorCopy(pm->ps->origin, down);
+		down[2] -= stepSize;
+		pm->trace (&trace, pm->ps->origin, pm->mins, pm->maxs, down, pm->ps->clientNum, pm->tracemask);
+		VectorCopy(trace.endpos, pm->ps->origin);
+		// pm->ps->velocity[2] += (pm->ps->origin[2] - origin[2]) / 1.0f;
+
+		return;		// we got exactly where we wanted to go second try
 	}
 
-	stepSize = trace.endpos[2] - start_o[2];
-	// try slidemove from this position
-	VectorCopy (trace.endpos, pm->ps->origin);
-	VectorCopy (start_v, pm->ps->velocity);
+	VectorCopy(origin, pm->ps->origin);
+	VectorCopy(velocity, pm->ps->velocity);
 
 	PM_SlideMove( gravity );
 
-	// push down the final amount
-	VectorCopy (pm->ps->origin, down);
-	down[2] -= stepSize;
-	pm->trace (&trace, pm->ps->origin, pm->mins, pm->maxs, down, pm->ps->clientNum, pm->tracemask);
-	if ( !trace.allsolid ) {
-		VectorCopy (trace.endpos, pm->ps->origin);
-	}
-	if ( trace.fraction < 1.0 ) {
-		if ( !g_stepsmoothing.integer )
-			PM_ClipVelocity( pm->ps->velocity, trace.plane.normal, pm->ps->velocity, OVERCLIP );
-	}
+// 	VectorCopy(start_o, down);
+// 	down[2] -= STEPSIZE;
+// 	pm->trace (&trace, start_o, pm->mins, pm->maxs, down, pm->ps->clientNum, pm->tracemask);
+// 	VectorSet(up, 0, 0, 1);
+// 	// never step up when you still have up velocity
+// 	if ( pm->ps->velocity[2] > 0 && (trace.fraction == 1.0 ||
+// 										DotProduct(trace.plane.normal, up) < 0.7)) {
+// 		return;
+// 	}
+
+// #if 0
+// 	VectorCopy (pm->ps->origin, down_o);
+// 	VectorCopy (pm->ps->velocity, down_v);
+// #endif
+
+// 	VectorCopy (start_o, up);
+// 	up[2] += STEPSIZE;
+
+// 	// See if we can step up without bonking our head. -- Joey
+// 	// test the player position if they were a stepheight higher
+// 	pm->trace (&trace, start_o, pm->mins, pm->maxs, up, pm->ps->clientNum, pm->tracemask);
+// 	if ( trace.allsolid ) {
+// 		if ( pm->debugLevel ) {
+// 			Com_Printf("%i:bend can't step\n", c_pmove);
+// 		}
+// 		return;		// can't step up
+// 	}
+
+// 	stepSize = trace.endpos[2] - start_o[2];
+// 	// try slidemove from this position
+// 	VectorCopy (trace.endpos, pm->ps->origin);
+// 	VectorCopy (start_v, pm->ps->velocity);
+
+// 	PM_SlideMove( gravity );
+
+// 	// push down the final amount
+// 	VectorCopy (pm->ps->origin, down);
+// 	down[2] -= stepSize;
+// 	pm->trace (&trace, pm->ps->origin, pm->mins, pm->maxs, down, pm->ps->clientNum, pm->tracemask);
+// 	if ( !trace.allsolid ) {
+// 		VectorCopy (trace.endpos, pm->ps->origin);
+// 	}
+// 	if ( trace.fraction < 1.0 ) {
+// 		if ( !g_stepsmoothing.integer )
+// 			PM_ClipVelocity( pm->ps->velocity, trace.plane.normal, pm->ps->velocity, OVERCLIP );
+// 	}
 
 #if 0
 	// if the down trace can trace back to the original position directly, don't step
@@ -322,7 +348,7 @@ void PM_StepSlideMove( qboolean gravity ) {
 		// use the step move
 		float	delta;
 
-		delta = pm->ps->origin[2] - start_o[2];
+		delta = pm->ps->origin[2] - origin[2];
 		if ( delta > 2 ) {
 			if ( delta < 7 ) {
 				PM_AddEvent( EV_STEP_4 );

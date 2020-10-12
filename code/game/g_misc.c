@@ -79,6 +79,7 @@ TELEPORTERS
 void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles ) {
 	gentity_t	*tent;
 	qboolean noAngles;
+	float speed, zspeed;
 
 	noAngles = (angles[0] > 999999.0);
 	// use temp events at source and destination to prevent the effect
@@ -95,12 +96,16 @@ void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles ) {
 	trap_UnlinkEntity (player);
 
 	VectorCopy ( origin, player->client->ps.origin );
-	player->client->ps.origin[2] += 1;
+	player->client->ps.origin[2] += 10;
 
 	if (!noAngles) {
 		// spit the player out
+		zspeed = player->client->ps.velocity[2];
+		player->client->ps.velocity[2] = 0;
+		speed = VectorLength(player->client->ps.velocity);
 		AngleVectors( angles, player->client->ps.velocity, NULL, NULL );
-		VectorScale( player->client->ps.velocity, 400, player->client->ps.velocity );
+		VectorScale( player->client->ps.velocity, speed, player->client->ps.velocity );
+		player->client->ps.velocity[2] = zspeed;
 		player->client->ps.pm_time = 160;		// hold time
 		player->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
 
