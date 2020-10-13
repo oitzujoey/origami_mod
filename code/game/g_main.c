@@ -909,6 +909,9 @@ void G_InitGame( int levelTime, int randomSeed, int restart )
 
 	PlayerStoreInit();
 
+	// Set movement settings.
+	BG_UpdateMovement(g_movement.integer);
+
 	//Set vote flags
 	{
 		int voteflags=0;
