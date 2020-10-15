@@ -309,6 +309,7 @@ vmCvar_t cg_developer;
 vmCvar_t g_movement;
 vmCvar_t g_rampjump;
 vmCvar_t g_stepsmoothing;
+vmCvar_t g_upstep;
 vmCvar_t g_teleportprojectiles;
 vmCvar_t g_overbounce;
 vmCvar_t g_excessiveoverbounce;
@@ -535,6 +536,7 @@ static cvarTable_t cvarTable[] = {// bk001129
 	{ &g_movement, "g_movement", "0", CVAR_ARCHIVE | CVAR_SERVERINFO},
 	{ &g_rampjump, "g_rampjump", "0", CVAR_ARCHIVE},
 	{ &g_stepsmoothing, "g_stepsmoothing", "0", CVAR_ARCHIVE},
+	{ &g_upstep, "g_upstep", "0", CVAR_ARCHIVE},
 	{ &g_teleportprojectiles, "g_teleportprojectiles", "0", CVAR_ARCHIVE},
 	{ &g_overbounce, "g_overbounce", "1", CVAR_ARCHIVE},
 	{ &g_excessiveoverbounce, "g_excessiveoverbounce", "0", CVAR_ARCHIVE | CVAR_SERVERINFO}
