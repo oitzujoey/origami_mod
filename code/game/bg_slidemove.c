@@ -259,14 +259,23 @@ void PM_StepSlideMove( qboolean gravity ) {
 		return;		// we got exactly where we wanted to go first try	
 	}
 
-	VectorCopy(start_o, down);
-	down[2] -= STEPSIZE;
-	pm->trace (&trace, start_o, pm->mins, pm->maxs, down, pm->ps->clientNum, pm->tracemask);
-	VectorSet(up, 0, 0, 1);
-	// never step up when you still have up velocity
-	if ( pm->ps->velocity[2] > 0 && (trace.fraction == 1.0 ||
-										DotProduct(trace.plane.normal, up) < 0.7)) {
-		return;
+	if ( g_stepsmoothing.integer ) {
+		VectorCopy (start_o, pm->ps->origin);
+		VectorCopy (start_v, pm->ps->velocity);
+	}
+
+	if ( !g_upstep.integer ) {
+		VectorCopy(start_o, down);
+		down[2] -= STEPSIZE;
+		pm->trace (&trace, start_o, pm->mins, pm->maxs, down, pm->ps->clientNum, pm->tracemask);
+		VectorSet(up, 0, 0, 1);
+		// never step up when you still have up velocity
+		if ( pm->ps->velocity[2] > 0 && (trace.fraction == 1.0 ||
+											DotProduct(trace.plane.normal, up) < 0.7)) {
+			if ( g_stepsmoothing.integer )
+				PM_SlideMove( gravity );
+			return;
+		}
 	}
 
 #if 0
@@ -284,6 +293,8 @@ void PM_StepSlideMove( qboolean gravity ) {
 		if ( pm->debugLevel ) {
 			Com_Printf("%i:bend can't step\n", c_pmove);
 		}
+		if ( g_stepsmoothing.integer )
+			PM_SlideMove( gravity );
 		return;		// can't step up
 	}
 
@@ -301,9 +312,10 @@ void PM_StepSlideMove( qboolean gravity ) {
 	if ( !trace.allsolid ) {
 		VectorCopy (trace.endpos, pm->ps->origin);
 	}
-	if ( trace.fraction < 1.0 ) {
-		if ( !g_stepsmoothing.integer )
+	if ( !g_stepsmoothing.integer ) {
+		if ( trace.fraction < 1.0 ) {
 			PM_ClipVelocity( pm->ps->velocity, trace.plane.normal, pm->ps->velocity, OVERCLIP );
+		}
 	}
 
 #if 0

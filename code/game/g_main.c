@@ -203,6 +203,7 @@ vmCvar_t g_wishspeed;
 vmCvar_t g_strafewishspeed;
 vmCvar_t g_rampjump;
 vmCvar_t g_stepsmoothing;
+vmCvar_t g_upstep;
 vmCvar_t g_planerjump;
 vmCvar_t g_walljump;
 vmCvar_t g_quakejump;
@@ -448,6 +449,7 @@ static cvarTable_t gameCvarTable[] = {
 	{ &g_strafewishspeed, "g_strafewishspeed", "30", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_rampjump, "g_rampjump", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_stepsmoothing, "g_stepsmoothing", "0", CVAR_ARCHIVE, 0, qtrue},
+	{ &g_upstep, "g_upstep", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_planerjump, "g_planerjump", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_walljump, "g_walljump", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_quakejump, "g_quakejump", "0", CVAR_ARCHIVE, 0, qtrue},
