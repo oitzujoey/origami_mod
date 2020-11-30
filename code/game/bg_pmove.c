@@ -518,6 +518,7 @@ static qboolean PM_CheckJump( void ) {
 		return qfalse;
 	}
 
+	// Yes, this is a bit out of place, but this seemed like the best place to put it.
 	if (g_stepsmoothing.integer) {
 		if (pml.groundPlane)
 			PM_ClipVelocity(pm->ps->velocity, pml.groundTrace.plane.normal, pm->ps->velocity, OVERCLIP);
