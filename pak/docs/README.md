@@ -9,6 +9,7 @@
 | bool | g_stepsmoothing | Server, Client | 0 | Make accent up stairs easier. |
 | bool | g_upstep | Server, Client | 0 | Allow stepping when velocity is positive. It is recommended to enable g_stepsmoothing as well to prevent strange side-effects. |
 | bool | g_autojump | Server, Client | 0 | Jump does not have to be released to jump again. |
+| int | g_movement | Server, Client | 0 | Select movement rules. |
 
 | Command | Effect |
 |-|-|
@@ -19,13 +20,12 @@
 That's it for now.  
 There are several example config files in the physics directory:
 
-| | |
-|-|-|
-| VQ3: | Pretty accurate implementation if I do say so myself. |
-| QW: | Is supposed to be QW. Who knows if I got it right. |
-| CPM: | Seems pretty close to CPM physics. The air control and a few variables may be off though. |
-| Origami Mode: | Rat has its own, so why can't I? Like CPM, but without W air control. Crouching allows you to fall faster and slide. |
-| Weird Physics: | Like Origami, but without the A & D wishspeed limitation. It's fast. |
+| g_movement | Ruleset | Description |
+|-|-|-|
+| 0 | VQ3 | Pretty accurate implementation if I do say so myself. |
+| 1 | QW | QuakeWorld. Not perfect. |
+| 2 | CPM | Seems pretty close to CPM physics. The air control and a few variables may be off though. |
+| 3 | Origami Mode | Rat has its own, so why can't I? Like CPM, but without W air control. Crouching allows you to slide. |
 
 ## Build
 
