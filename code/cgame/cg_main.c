@@ -30,6 +30,7 @@ displayContextDef_t cgDC;
 #endif
 
 int forceModelModificationCount = -1;
+int movementRulesModificationCount = -1;
 
 void CG_Init(int serverMessageNum, int serverCommandSequence, int clientNum);
 void CG_Shutdown(void);
@@ -313,6 +314,7 @@ vmCvar_t g_upstep;
 vmCvar_t g_teleportprojectiles;
 vmCvar_t g_overbounce;
 vmCvar_t g_excessiveoverbounce;
+vmCvar_t g_autojump;
 
 typedef struct {
 	vmCvar_t *vmCvar;
@@ -539,7 +541,8 @@ static cvarTable_t cvarTable[] = {// bk001129
 	{ &g_upstep, "g_upstep", "0", CVAR_ARCHIVE},
 	{ &g_teleportprojectiles, "g_teleportprojectiles", "0", CVAR_ARCHIVE},
 	{ &g_overbounce, "g_overbounce", "1", CVAR_ARCHIVE},
-	{ &g_excessiveoverbounce, "g_excessiveoverbounce", "0", CVAR_ARCHIVE | CVAR_SERVERINFO}
+	{ &g_excessiveoverbounce, "g_excessiveoverbounce", "0", CVAR_ARCHIVE | CVAR_SERVERINFO},
+	{ &g_autojump, "g_autojump", "0", CVAR_ARCHIVE | CVAR_SERVERINFO}
 };
 
 static int cvarTableSize = sizeof ( cvarTable) / sizeof ( cvarTable[0]);
@@ -652,6 +655,11 @@ void CG_UpdateCvars(void) {
 	if (forceModelModificationCount != cg_forceModel.modificationCount) {
 		forceModelModificationCount = cg_forceModel.modificationCount;
 		CG_ForceModelChange();
+	}
+
+	if (movementRulesModificationCount != g_movement.modificationCount) {
+		movementRulesModificationCount = g_movement.modificationCount;
+		BG_UpdateMovement(g_movement.integer);
 	}
 }
 

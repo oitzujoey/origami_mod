@@ -252,6 +252,7 @@ typedef struct {
 	float accelerate;
 	float airaccelerate;
 	float strafeaccelerate;
+	int itempickupheight;
 	qboolean quakeramp;
 	qboolean quakejump;
 	qboolean doublejump;

@@ -203,6 +203,7 @@ vmCvar_t g_stepsmoothing;
 vmCvar_t g_upstep;
 vmCvar_t g_overbounce;
 vmCvar_t g_excessiveoverbounce;
+vmCvar_t g_autojump;
 
 mapinfo_result_t mapinfo;
 
@@ -427,7 +428,8 @@ static cvarTable_t gameCvarTable[] = {
 	{ &g_upstep, "g_upstep", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_teleportprojectiles, "g_teleportprojectiles", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_overbounce, "g_overbounce", "1", CVAR_ARCHIVE, 0, qtrue},
-	{ &g_excessiveoverbounce, "g_excessiveoverbounce", "0", CVAR_ARCHIVE | CVAR_SERVERINFO, 0, qtrue}
+	{ &g_excessiveoverbounce, "g_excessiveoverbounce", "0", CVAR_ARCHIVE | CVAR_SERVERINFO, 0, qtrue},
+	{ &g_autojump, "g_autojump", "0", CVAR_ARCHIVE | CVAR_SERVERINFO, 0, qtrue}
 };
 
 // bk001129 - made static to avoid aliasing

@@ -86,6 +86,7 @@ extern	vmCvar_t g_upstep;
 extern	vmCvar_t g_teleportprojectiles;
 extern	vmCvar_t g_overbounce;
 extern	vmCvar_t g_excessiveoverbounce;
+extern	vmCvar_t g_autojump;
 
 void PM_ClipVelocity( vec3_t in, vec3_t normal, vec3_t out, float overbounce );
 void PM_AddTouchEnt( int entityNum );

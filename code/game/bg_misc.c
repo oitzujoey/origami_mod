@@ -1193,7 +1193,7 @@ qboolean BG_PlayerTouchesItem(playerState_t *ps, entityState_t *item, int atTime
 			|| ps->origin[0] - origin[0] < -50
 			|| ps->origin[1] - origin[1] > 36
 			|| ps->origin[1] - origin[1] < -36
-			|| ps->origin[2] - origin[2] > 36
+			|| ps->origin[2] - origin[2] > 50//movecfg.itempickupheight
 			|| ps->origin[2] - origin[2] < -36) {
 		return qfalse;
 	}

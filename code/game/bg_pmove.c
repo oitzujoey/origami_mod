@@ -442,32 +442,6 @@ static void PM_SetMovementDir( void )
 
 
 /*
-=============
-PM_CheckJump
-=============
-*/
-static qboolean PM_CheckJump( void ) {
-
-	if ( pm->ps->pm_flags & PMF_RESPAWNED ) {
-		return qfalse;		// don't allow jump until all buttons are up
-	}
-
-	if ( pm->cmd.upmove < 10 ) {
-		// not holding jump
-		return qfalse;
-	}
-
-	// must wait for jump to be released
-	if ( pm->ps->pm_flags & PMF_JUMP_HELD ) {
-		// clear upmove so cmdscale doesn't lower running speed
-		pm->cmd.upmove = 0;
-		return qfalse;
-	}
-
-	return qtrue;
-}
-
-/*
 ============
 PM_DoJump
 ============
@@ -477,9 +451,12 @@ static void PM_DoJump( void )
 	if (!pml.jump_queued)
 		return;
 
+	if ( !pml.walking )
+		return;
+
 	// Kill overbounce post jump.
 	pm->ps->stats[STAT_OVERBOUNCE] &= ~(1<<OB_DOOB);
-	
+
 	// Ramp boost
 	// I can't believe that this is all that is required.
 	// All the hard work is done by PM_ClipVelocity!
@@ -516,6 +493,37 @@ static void PM_DoJump( void )
 		PM_ForceLegsAnim( LEGS_JUMPB );
 		pm->ps->pm_flags |= PMF_BACKWARDS_JUMP;
 	}
+}
+
+/*
+=============
+PM_CheckJump
+=============
+*/
+static qboolean PM_CheckJump( void ) {
+
+	if ( pm->ps->pm_flags & PMF_RESPAWNED ) {
+		return qfalse;		// don't allow jump until all buttons are up
+	}
+
+	if ( pm->cmd.upmove < 10 ) {
+		// not holding jump
+		return qfalse;
+	}
+
+	// must wait for jump to be released
+	if ( (pm->ps->pm_flags & PMF_JUMP_HELD) && !g_autojump.integer ) {
+		// clear upmove so cmdscale doesn't lower running speed
+		pm->cmd.upmove = 0;
+		return qfalse;
+	}
+
+	if (movecfg.quakejump)
+		return qtrue;
+
+	PM_DoJump();
+
+	return qtrue;
 }
 
 /*
@@ -943,12 +951,14 @@ static void PM_WalkMove( void )
 		PM_GroundTrace();
 		// jumped away
 		if ( pm->waterlevel > 1 ) {
-			PM_DoJump();
+			if (movecfg.quakejump)
+				PM_DoJump();
 			PM_WaterMove();
 		}
 		else {
 			PM_AirMove();
-			PM_DoJump();
+			if (movecfg.quakejump)
+				PM_DoJump();
 			pm->ps->stats[STAT_OVERBOUNCE] &= ~(1<<OB_MAYHAPPEN);
 		}
 		pml.jump_queued = qfalse;
@@ -2502,6 +2512,7 @@ void BG_UpdateMovement( int mode ) {
 		movecfg.doublejump = qfalse;
 		movecfg.cpmkbd = qfalse;
 		movecfg.orikbd = qfalse;
+		movecfg.itempickupheight = 36;
 	break;
 	case MOVEMENT_QW:
 		movecfg.crouchfriction = 1;
@@ -2519,6 +2530,7 @@ void BG_UpdateMovement( int mode ) {
 		movecfg.doublejump = qfalse;
 		movecfg.cpmkbd = qfalse;
 		movecfg.orikbd = qfalse;
+		movecfg.itempickupheight = 36;
 	break;
 	case MOVEMENT_CPM:
 		movecfg.crouchfriction = 1;
@@ -2536,13 +2548,14 @@ void BG_UpdateMovement( int mode ) {
 		movecfg.doublejump = qtrue;
 		movecfg.cpmkbd = qtrue;
 		movecfg.orikbd = qfalse;
+		movecfg.itempickupheight = 36;
 	break;
 	case MOVEMENT_ORI:
 		movecfg.crouchfriction = 0.2;
 		movecfg.friction = 6;
 		movecfg.wishspeed = 400;
 		movecfg.strafewishspeed = 30;
-		movecfg.crouchdrop = 500;
+		movecfg.crouchdrop = 0;
 		movecfg.aircontrol = 0;
 		movecfg.slickaccelerate = 10;
 		movecfg.accelerate = 10;
@@ -2553,6 +2566,7 @@ void BG_UpdateMovement( int mode ) {
 		movecfg.doublejump = qfalse;
 		movecfg.cpmkbd = qtrue;
 		movecfg.orikbd = qtrue;
+		movecfg.itempickupheight = 45; // 36+36/2-36/4
 	break;
 	}
 }

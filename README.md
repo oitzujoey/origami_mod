@@ -5,27 +5,10 @@
 
 | Type | Cvar | VM | Default | Description |
 |-|-|-|:-:|-|
-| float | g_acclerate | Server, Client | 10 | pm_accelerate: Ground acceleration |
-| float | g_airacclerate | Server, Client | 1 | pm_airaccelerate: Air acceleration |
-| float | g_strafeaccelerate | Server, Client | 1 | Air acceleration that is only applied when strafing in a CPM-like mode (g_cpmkbd || g_orikbd) |
-| float | g_slickaccelerate | Server, Client | 10 | Acceleration on slick surfaces. |
-| float | g_wishspeed | Server, Client | 400 | The thing that makes you go slow in Q1 |
-| float | g_strafewishspeed | Server, Client | 30 | The thing that makes you go slow sideways in CPM |
-| float | g_aircontrol | Server, Client | 0 | CPM air control. 5--10 is a good number. |
-| bool | g_cpmkbd | Server, Client | 0 | Turn CPM keyboard specific movement rules on or off. |
-| bool | g_orikbd | Server, Client | 0 | Turn CPM-like keyboard specific movement rules on or off. This is for forward and backward. |
-| float | g_friction | Server, Client | 6 | pm_friction: Ground friction |
-| float | g_crouchfriction | Server, Client | 1 | Reduce (or increase) friction when crouched. This is a factor of g_friction. |
 | bool | g_rampjump | Server, Client | 0 | Allow accumulative jumps. |
-| bool | g_quakejump | Server, Client | 0 | Allow jumps that result in negative vertical velocity. |
-| bool | g_quakeramp | Server, Client | 0 | Use Quake ramp physics. |
-| float | g_doublejump | Server, Client | 0 | Give a boost if a jump is done within 400 ms of the last one. |
 | bool | g_stepsmoothing | Server, Client | 0 | Make accent up stairs easier. |
 | bool | g_upstep | Server, Client | 0 | Allow stepping when velocity is positive. It is recommended to enable g_stepsmoothing as well to prevent strange side-effects. |
-| float | g_crouchdrop | Server, Client | 0 | Press crouch to drop faster. Useful to prevent overshooting the top of ledges when using bounce pads. |
-| float | g_lightningdischarge | Server, Client | 0 | Quake lightning gun discharge. |
-| bool | g_backpack | Server, Client | 0 | Not implemented. Comes from Q1.|
-| bool | g_teleportprojectiles | Server, Client | 0 | Not implemented. If you know how to do this, I would appreciate your help. |
+| bool | g_autojump | Server, Client | 0 | Jump does not have to be released to jump again. |
 
 | Command | Effect |
 |-|-|
