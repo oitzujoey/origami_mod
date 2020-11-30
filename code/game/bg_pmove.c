@@ -518,6 +518,12 @@ static qboolean PM_CheckJump( void ) {
 		return qfalse;
 	}
 
+	if (g_stepsmoothing.integer) {
+		if (pml.groundPlane)
+			PM_ClipVelocity(pm->ps->velocity, pml.groundTrace.plane.normal, pm->ps->velocity, OVERCLIP);
+	}
+	PM_GroundTrace();
+
 	if (movecfg.quakejump)
 		return qtrue;
 
@@ -949,7 +955,6 @@ static void PM_WalkMove( void )
 
 	if ( (pml.jump_queued = PM_CheckJump ()) ||
 			( ( pm->ps->stats[STAT_OVERBOUNCE] & (1<<OB_MAYHAPPEN) ) && !g_overbounce.integer ) ) {
-		PM_GroundTrace();
 		// jumped away
 		if ( pm->waterlevel > 1 ) {
 			if (movecfg.quakejump)
