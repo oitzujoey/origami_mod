@@ -192,7 +192,7 @@ static void PM_Friction( void )
 	float	drop;
 	float	duckFriction = 1.0f;
 
-	if ((pm->ps->pm_flags & PMF_DUCKED) || (pm->ps->stats[STAT_CROUCHTIME] > 0))
+	if (pm->ps->pm_flags & PMF_DUCKED)
 		duckFriction = movecfg.crouchfriction;
 
 	vel = pm->ps->velocity;
@@ -1564,7 +1564,7 @@ static void PM_CheckDuck (void)
 		return;
 	}
 
-	if (pm->cmd.upmove < 0) {
+	if (((pm->cmd.upmove < 0) && (pm->ps->stats[STAT_BUTTONS] & (1<<BUTTON_CROUCH))) || (pm->ps->stats[STAT_BUTTONS] & (1<<BUTTON_CROUCH))) {
 		// duck
 		pm->ps->pm_flags |= PMF_DUCKED;
 	}
@@ -1576,7 +1576,6 @@ static void PM_CheckDuck (void)
 			pm->trace (&trace, pm->ps->origin, pm->mins, pm->maxs, pm->ps->origin, pm->ps->clientNum, pm->tracemask );
 			if (!trace.allsolid) {
 				pm->ps->pm_flags &= ~PMF_DUCKED;
-				pm->ps->stats[STAT_CROUCHTIME] = 400;
 			}
 		}
 	}
@@ -2176,14 +2175,6 @@ static void PM_DropTimers( void )
 		}
 	}
 
-	// drop post-crouch counter
-	if ( pm->ps->stats[STAT_CROUCHTIME] > 0 ) {
-		pm->ps->stats[STAT_CROUCHTIME] -= pml.msec;
-		if ( pm->ps->stats[STAT_CROUCHTIME] < 0 ) {
-			pm->ps->stats[STAT_CROUCHTIME] = 0;
-		}
-	}
-
 	// drop post-jump counter
 	if ( pm->ps->stats[STAT_JUMPTIME] > 0 ) {
 		pm->ps->stats[STAT_JUMPTIME] -= pml.msec;
@@ -2298,6 +2289,7 @@ void PmoveSingle (pmove_t *pmove)
 		pmove->cmd.forwardmove = 0;
 		pmove->cmd.rightmove = 0;
 		pmove->cmd.upmove = 0;
+		pm->ps->stats[STAT_BUTTONS] &= ~(1<<BUTTON_CROUCH);
 	}
 
 	// clear all pmove local vars
@@ -2343,6 +2335,7 @@ void PmoveSingle (pmove_t *pmove)
 		pm->cmd.forwardmove = 0;
 		pm->cmd.rightmove = 0;
 		pm->cmd.upmove = 0;
+		pm->ps->stats[STAT_BUTTONS] &= ~(1<<BUTTON_CROUCH);
 	}
 
 	if ( pm->ps->pm_type == PM_SPECTATOR ) {

@@ -14,6 +14,7 @@
 |-|-|
 | dropweapon | Drop the current weapon you are carrying. |
 | dropammo | Drop one full set of ammo of the weapon you are carrying if able. |
+| +crouch | Alternative crouch. Allows jumping while crouched. |
 
 That's it for now.  
 There are several example config files in the physics directory:

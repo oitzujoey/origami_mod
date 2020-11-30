@@ -281,13 +281,17 @@ typedef enum {
 	STAT_PERSISTANT_POWERUP,
 	STAT_OVERBOUNCE,				// Overbounce related flags.
 	STAT_JUMPTIME,
-	STAT_CROUCHTIME
+	STAT_BUTTONS					// Extra buttons
 } statIndex_t;
 
 typedef enum {
 	OB_MAYHAPPEN,
 	OB_DOOB
 } statOverbounce_t;
+
+typedef enum {
+	BUTTON_CROUCH
+} statButton_t;
 
 
 // player_state->persistant[] indexes

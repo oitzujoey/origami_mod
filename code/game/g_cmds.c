@@ -2340,6 +2340,14 @@ void Cmd_DropWeapon_f( gentity_t *ent) {
 	}
 }
 
+void Cmd_CrouchDown_f( gentity_t *ent ) {
+	ent->client->ps.stats[STAT_BUTTONS] |= 1<<BUTTON_CROUCH;
+}
+
+void Cmd_CrouchUp_f( gentity_t *ent ) {
+	ent->client->ps.stats[STAT_BUTTONS] &= ~(1<<BUTTON_CROUCH);
+}
+
 //KK-OAX This is the table that ClientCommands runs the console entry against. 
 commands_t cmds[ ] = 
 {
@@ -2394,7 +2402,9 @@ commands_t cmds[ ] =
 
 	// Origami Mod
 	{ "dropammo", CMD_LIVING, Cmd_DropAmmo_f },
-	{ "dropweapon", CMD_LIVING, Cmd_DropWeapon_f }
+	{ "dropweapon", CMD_LIVING, Cmd_DropWeapon_f },
+	{ "crouchdown", CMD_LIVING, Cmd_CrouchDown_f },
+	{ "crouchup", CMD_LIVING, Cmd_CrouchUp_f }
 };
 
 static int numCmds = sizeof( cmds ) / sizeof( cmds[ 0 ] );

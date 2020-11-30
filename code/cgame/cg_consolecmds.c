@@ -535,6 +535,14 @@ static void CG_Camera_f( void ) {
 }
  */
 
+static void CG_CrouchDown_f( void ) {
+	trap_SendConsoleCommand("crouchdown");
+}
+
+static void CG_CrouchUp_f( void ) {
+	trap_SendConsoleCommand("crouchup");
+}
+
 
 typedef struct {
 	char *cmd;
@@ -595,7 +603,9 @@ static consoleCommand_t commands[] = {
 	{ "loaddeferred", CG_LoadDeferredPlayers},
 	{ "+acc", CG_AccDown_f},
 	{ "-acc", CG_AccUp_f},
-	{ "clients", CG_PrintClientNumbers}
+	{ "clients", CG_PrintClientNumbers},
+	{ "+crouch", CG_CrouchDown_f},
+	{ "-crouch", CG_CrouchUp_f}
 };
 
 /*
@@ -673,4 +683,6 @@ void CG_InitConsoleCommands(void) {
 	/* Origami Mod */
 	trap_AddCommand("dropammo");
 	trap_AddCommand("dropweapon");
+	trap_AddCommand("crouchdown");
+	trap_AddCommand("crouchup");
 }
