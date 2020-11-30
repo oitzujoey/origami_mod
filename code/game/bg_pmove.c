@@ -521,6 +521,7 @@ static qboolean PM_CheckJump( void ) {
 	if (movecfg.quakejump)
 		return qtrue;
 
+	pml.jump_queued = qtrue;
 	PM_DoJump();
 
 	return qtrue;
