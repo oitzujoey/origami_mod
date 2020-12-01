@@ -623,7 +623,8 @@ void G_RunMissile( gentity_t *ent )
 	trap_LinkEntity( ent );
 
 	if (g_teleportprojectiles.value)
-		G_MissileTouchTriggers( ent );
+		if (G_MissileTouchTriggers( ent ))
+			return;
 
 	if ( tr.fraction != 1 ) {
 		// never explode or bounce on sky
