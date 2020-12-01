@@ -5,11 +5,12 @@
 
 | Type | Cvar | VM | Default | Description |
 |-|-|-|:-:|-|
+| bool | g_autojump | Server, Client | 0 | Jump does not have to be released to jump again. |
 | bool | g_rampjump | Server, Client | 0 | Allow accumulative jumps. |
 | bool | g_stepsmoothing | Server, Client | 0 | Make accent up stairs easier. |
 | bool | g_upstep | Server, Client | 0 | Allow stepping when velocity is positive. It is recommended to enable g_stepsmoothing as well to prevent strange side-effects. |
-| bool | g_autojump | Server, Client | 0 | Jump does not have to be released to jump again. |
 | int | g_movement | Server, Client | 0 | Select movement rules. |
+| bool | g_teleportprojectiles | Server, Client | 0 | Allow projectiles to teleport. |
 
 | Command | Effect |
 |-|-|

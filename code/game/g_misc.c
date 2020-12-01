@@ -138,6 +138,79 @@ void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles ) {
 }
 
 
+void TeleportMissile( gentity_t *missile, vec3_t origin, vec3_t angles ) {
+	gentity_t	*tent;
+	qboolean noAngles;
+	float speed, zspeed;
+	float deltaTime;
+	vec3_t tempVec;
+
+	noAngles = (angles[0] > 999999.0);
+	// use temp events at source and destination to prevent the effect
+	// from getting dropped by a second missile event
+	tent = G_TempEntity( missile->r.currentOrigin, EV_PLAYER_TELEPORT_OUT );
+	tent->s.clientNum = missile->s.clientNum;
+
+	tent = G_TempEntity( origin, EV_PLAYER_TELEPORT_IN );
+	tent->s.clientNum = missile->s.clientNum;
+
+	// unlink to make sure it can't possibly interfere with G_KillBox
+	trap_UnlinkEntity (missile);
+
+
+	if (!noAngles) {
+		// spit the missile out
+		zspeed = missile->s.pos.trDelta[2];
+		missile->s.pos.trDelta[2] = 0;
+		speed = VectorLength(missile->s.pos.trDelta);
+		AngleVectors( angles, missile->s.pos.trDelta, NULL, NULL );
+		VectorScale( missile->s.pos.trDelta, speed, missile->s.pos.trDelta );
+		missile->s.pos.trDelta[2] = zspeed;
+
+		// missile->s.pos.trTime = level.time;
+
+		// set angles
+		// SetClientViewAngle(missile, angles);
+	}
+
+	/*
+	The missile's origin stays the same distance from the missile,
+	but the line it lies on is now in line with the exit teleporter.
+	This only works with a few types of projectiles.
+	*/
+	VectorCopy ( origin, missile->r.currentOrigin );
+	
+	deltaTime = (level.time - missile->s.pos.trTime) * 0.001;
+	VectorCopy(missile->s.pos.trDelta, tempVec);
+	VectorMA(vec3_origin, deltaTime, tempVec, tempVec);
+	VectorSubtract( origin, tempVec, missile->s.pos.trBase );
+
+	missile->s.pos.trBase[2] += 25;
+	missile->r.currentOrigin[2] += 25;
+
+	// toggle the teleport bit so the client knows to not lerp
+	// missile->client->ps.eFlags ^= EF_TELEPORT_BIT;
+	missile->s.eFlags ^= EF_TELEPORT_BIT;
+
+//unlagged - backward reconciliation #3
+	// we don't want players being backward-reconciled back through teleporters
+	// G_ResetHistory( missile );
+//unlagged - backward reconciliation #3
+
+	// kill anything at the destination
+	// Teleporters are now dangerous.
+	G_KillBox (missile);
+
+	// save results of pmove
+	// BG_PlayerStateToEntityState( &missile->client->ps, &missile->s, qtrue );
+
+	// use the precise origin for linking
+	// VectorCopy( missile->client->ps.origin, missile->r.currentOrigin );
+
+	trap_LinkEntity (missile);
+}
+
+
 /*QUAKED misc_teleporter_dest (1 0 0) (-32 -32 -24) (32 32 -16)
 Point teleporters at these.
 Now that we don't have teleport destination pads, this is just

@@ -288,6 +288,13 @@ void trigger_teleporter_touch (gentity_t *self, gentity_t *other, trace_t *trace
 	gentity_t	*dest;
 
 	if ( !other->client ) {
+		dest = 	G_PickTarget( self->target );
+		if (!dest) {
+			G_Printf ("Couldn't find teleporter destination\n");
+			return;
+		}
+
+		TeleportMissile( other, dest->s.origin, dest->s.angles );
 		return;
 	}
 

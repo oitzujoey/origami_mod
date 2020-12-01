@@ -514,6 +514,75 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace )
 }
 
 /*
+============
+G_MissileTouchTriggers
+
+Find all trigger entities that ent's current position touches.
+Spectators will only interact with teleporters.
+============
+*/
+qboolean G_MissileTouchTriggers( gentity_t *ent ) {
+	int			i, num;
+	int			touch[MAX_GENTITIES];
+	gentity_t	*hit;
+	trace_t		trace;
+	vec3_t		mins, maxs;
+	static vec3_t	range = { 5, 5, 5 };
+	qboolean	triggered = qfalse;
+
+	VectorSubtract( ent->r.currentOrigin, range, mins );
+	VectorAdd( ent->r.currentOrigin, range, maxs );
+
+	num = trap_EntitiesInBox( mins, maxs, touch, MAX_GENTITIES );
+
+	// can't use ent->absmin, because that has a one unit pad
+	VectorAdd( ent->r.currentOrigin, ent->r.mins, mins );
+	VectorAdd( ent->r.currentOrigin, ent->r.maxs, maxs );
+
+	for ( i=0 ; i<num ; i++ ) {
+		hit = &g_entities[touch[i]];
+
+		if ( !hit->touch && !ent->touch ) {
+			continue;
+		}
+		if ( !( hit->r.contents & CONTENTS_TRIGGER ) ) {
+			continue;
+		}
+
+		// // use seperate code for determining if an item is picked up
+		// // so you don't have to actually contact its bounding box
+		// if ( hit->s.eType == ET_ITEM ) {
+		// 	if ( !BG_PlayerTouchesItem( &ent->client->ps, &hit->s, level.time ) ) {
+		// 		continue;
+		// 	}
+		// } else {
+		// 	if ( !trap_EntityContact( mins, maxs, hit ) ) {
+		// 		continue;
+		// 	}
+		// }
+
+		memset( &trace, 0, sizeof(trace) );
+
+		if ( hit->touch ) {
+			hit->touch (hit, ent, &trace);
+			triggered = qtrue;
+		}
+
+		if ( ( ent->r.svFlags & SVF_BOT ) && ( ent->touch ) ) {
+			ent->touch( ent, hit, &trace );
+			triggered = qtrue;
+		}
+	}
+
+	// // if we didn't touch a jump pad this pmove frame
+	// if ( ent->client->ps.jumppad_frame != ent->client->ps.pmove_framecount ) {
+	// 	ent->client->ps.jumppad_frame = 0;
+	// 	ent->client->ps.jumppad_ent = 0;
+	// }
+	return triggered;
+}
+
+/*
 ================
 G_RunMissile
 ================
@@ -552,6 +621,9 @@ void G_RunMissile( gentity_t *ent )
 	}
 
 	trap_LinkEntity( ent );
+
+	if (g_teleportprojectiles.value)
+		G_MissileTouchTriggers( ent );
 
 	if ( tr.fraction != 1 ) {
 		// never explode or bounce on sky
