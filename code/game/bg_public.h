@@ -254,6 +254,7 @@ typedef struct {
 	float strafeaccelerate;
 	int itempickupheight;
 	qboolean quakeramp;
+	qboolean quakesteps;
 	qboolean quakejump;
 	qboolean doublejump;
 	qboolean cpmkbd;
@@ -281,7 +282,8 @@ typedef enum {
 	STAT_PERSISTANT_POWERUP,
 	STAT_OVERBOUNCE,				// Overbounce related flags.
 	STAT_JUMPTIME,
-	STAT_BUTTONS					// Extra buttons
+	STAT_BUTTONS,					// Extra buttons
+	STAT_PM_FLAGS                   // pm_flags is full. This is the expansion.
 } statIndex_t;
 
 typedef enum {
@@ -292,6 +294,10 @@ typedef enum {
 typedef enum {
 	BUTTON_CROUCH
 } statButton_t;
+
+typedef enum {
+	PM_FLAG_CROUCH_HELD
+} statPMFlag_t;
 
 
 // player_state->persistant[] indexes

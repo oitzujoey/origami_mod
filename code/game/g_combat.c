@@ -1520,6 +1520,7 @@ qboolean G_RadiusDamage ( vec3_t origin, gentity_t *attacker, float damage, floa
 monster_die
 
 definitely mangled from player_die with less about the player
+Note: Unused
 ==================
 */
 

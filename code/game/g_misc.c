@@ -69,6 +69,49 @@ void SP_light( gentity_t *self ) {
 
 
 /*
+========================
+BG_MissileTouchJumpPad
+========================
+ */
+void BG_MissileTouchJumpPad(gentity_t *missile, entityState_t *jumppad) {
+	vec3_t tempVec;
+	float dot;
+	float deltaTime;
+	// gentity_t *tent;
+
+	// tent = G_TempEntity( missile->r.currentOrigin, EV_JUMP_PAD );
+	// tent->s.clientNum = missile->s.clientNum;
+
+	VectorNormalize2(jumppad->origin2, tempVec);
+
+	switch (missile->s.weapon) {
+		case WP_GRENADE_LAUNCHER:
+			VectorCopy(jumppad->origin2, missile->s.pos.trDelta);
+			// This is so the grenade doesn't get stuck in the jump pad.
+			VectorMA(missile->r.currentOrigin, 20, tempVec, missile->r.currentOrigin);
+			break;
+		default:
+			dot = DotProduct(missile->s.pos.trDelta, tempVec);
+			// Missile came from the top. Need to reflect. Otherwise, refract (or something like that).
+			if (dot < 0) {
+				VectorMA(missile->s.pos.trDelta, -2*dot, tempVec, missile->s.pos.trDelta);
+			}
+			else {
+				VectorMA(missile->s.pos.trDelta, 2*dot, tempVec, missile->s.pos.trDelta);
+			}
+
+			missile->r.svFlags |= SVF_NOPASSENT;
+	}
+	
+	deltaTime = (level.time - missile->s.pos.trTime) * 0.001;
+	VectorMA(vec3_origin, deltaTime, missile->s.pos.trDelta, tempVec);
+	VectorSubtract( missile->r.currentOrigin, tempVec, missile->s.pos.trBase );
+}
+
+
+
+
+/*
 =================================================================================
 
 TELEPORTERS
@@ -181,8 +224,7 @@ void TeleportMissile( gentity_t *missile, vec3_t origin, vec3_t angles ) {
 	VectorCopy ( origin, missile->r.currentOrigin );
 	
 	deltaTime = (level.time - missile->s.pos.trTime) * 0.001;
-	VectorCopy(missile->s.pos.trDelta, tempVec);
-	VectorMA(vec3_origin, deltaTime, tempVec, tempVec);
+	VectorMA(vec3_origin, deltaTime, missile->s.pos.trDelta, tempVec);
 	VectorSubtract( origin, tempVec, missile->s.pos.trBase );
 
 	missile->s.pos.trBase[2] += 25;
@@ -191,6 +233,9 @@ void TeleportMissile( gentity_t *missile, vec3_t origin, vec3_t angles ) {
 	// toggle the teleport bit so the client knows to not lerp
 	// missile->client->ps.eFlags ^= EF_TELEPORT_BIT;
 	missile->s.eFlags ^= EF_TELEPORT_BIT;
+
+	if (missile->s.weapon != WP_GRENADE_LAUNCHER)
+		missile->r.svFlags |= SVF_NOPASSENT;
 
 //unlagged - backward reconciliation #3
 	// we don't want players being backward-reconciled back through teleporters

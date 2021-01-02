@@ -153,6 +153,7 @@ void trigger_push_touch (gentity_t *self, gentity_t *other, trace_t *trace )
 {
 
 	if ( !other->client ) {
+		BG_MissileTouchJumpPad( other, &self->s );
 		return;
 	}
 

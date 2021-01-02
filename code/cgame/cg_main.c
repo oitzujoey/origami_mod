@@ -155,6 +155,7 @@ vmCvar_t cg_thirdPersonAngle;
 vmCvar_t cg_lagometer;
 vmCvar_t cg_drawAttacker;
 vmCvar_t cg_drawSpeed;
+vmCvar_t cg_drawSpeed3D;
 vmCvar_t cg_synchronousClients;
 vmCvar_t cg_teamChatTime;
 vmCvar_t cg_teamChatHeight;
@@ -311,7 +312,7 @@ vmCvar_t g_movement;
 vmCvar_t g_rampjump;
 vmCvar_t g_stepsmoothing;
 vmCvar_t g_upstep;
-vmCvar_t g_teleportprojectiles;
+vmCvar_t g_missiletriggers;
 vmCvar_t g_overbounce;
 vmCvar_t g_excessiveoverbounce;
 vmCvar_t g_autojump;
@@ -343,6 +344,7 @@ static cvarTable_t cvarTable[] = {// bk001129
 	{ &cg_drawAmmoWarning, "cg_drawAmmoWarning", "1", CVAR_ARCHIVE},
 	{ &cg_drawAttacker, "cg_drawAttacker", "1", CVAR_ARCHIVE},
 	{ &cg_drawSpeed, "cg_drawSpeed", "0", CVAR_ARCHIVE},
+	{ &cg_drawSpeed3D, "cg_drawSpeed3D", "0", CVAR_ARCHIVE},
 	{ &cg_drawCrosshair, "cg_drawCrosshair", "4", CVAR_ARCHIVE},
 	{ &cg_drawCrosshairNames, "cg_drawCrosshairNames", "1", CVAR_ARCHIVE},
 	{ &cg_drawRewards, "cg_drawRewards", "1", CVAR_ARCHIVE},
@@ -539,7 +541,7 @@ static cvarTable_t cvarTable[] = {// bk001129
 	{ &g_rampjump, "g_rampjump", "0", CVAR_ARCHIVE},
 	{ &g_stepsmoothing, "g_stepsmoothing", "0", CVAR_ARCHIVE},
 	{ &g_upstep, "g_upstep", "0", CVAR_ARCHIVE},
-	{ &g_teleportprojectiles, "g_teleportprojectiles", "0", CVAR_ARCHIVE},
+	{ &g_missiletriggers, "g_missiletriggers", "0", CVAR_ARCHIVE},
 	{ &g_overbounce, "g_overbounce", "1", CVAR_ARCHIVE},
 	{ &g_excessiveoverbounce, "g_excessiveoverbounce", "0", CVAR_ARCHIVE | CVAR_SERVERINFO},
 	{ &g_autojump, "g_autojump", "0", CVAR_ARCHIVE | CVAR_SERVERINFO}

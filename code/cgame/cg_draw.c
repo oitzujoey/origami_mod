@@ -854,6 +854,42 @@ static float CG_DrawSpeedMeter(float y) {
 }
 
 /*
+================
+CG_DrawSpeedMeter3D
+
+================
+ */
+static float CG_DrawSpeedMeter3D(float y) {
+	char *s;
+	int w;
+	vec_t *vel;
+	int speed;
+
+	/* speed meter can get in the way of the scoreboard */
+	if (cg.scoreBoardShowing) {
+		return y;
+	}
+
+	vel = cg.snap->ps.velocity;
+	/* ignore vertical component of velocity */
+	speed = sqrt(vel[0] * vel[0] + vel[1] * vel[1] + vel[2] * vel[2]);
+
+	s = va("%iu/s", speed);
+
+	w = CG_DrawStrlen(s) * BIGCHAR_WIDTH;
+
+	if (cg_drawSpeed3D.integer == 1) {
+		/* top left-hand corner of screen */
+		CG_DrawBigString(635 - w, y + 2, s, 1.0F);
+		return y + BIGCHAR_HEIGHT + 4;
+	} else {
+		/* center of screen */
+		CG_DrawBigString(320 - w / 2, 300, s, 1.0F);
+		return y;
+	}
+}
+
+/*
 ==================
 CG_DrawSnapshot
 ==================
@@ -1626,6 +1662,9 @@ static void CG_DrawUpperRight(stereoFrame_t stereoFrame) {
 	}
 	if (cg_drawSpeed.integer) {
 		y = CG_DrawSpeedMeter(y);
+	}
+	if (cg_drawSpeed3D.integer) {
+		y = CG_DrawSpeedMeter3D(y);
 	}
 
 }

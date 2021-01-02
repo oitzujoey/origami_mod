@@ -176,6 +176,34 @@ void PM_ClipVelocity( vec3_t in, vec3_t normal, vec3_t out, float overbounce )
 	}
 }
 
+/*
+==================
+PM_OneSidedClipVelocity
+
+Slide off of the impacting surface
+==================
+*/
+void PM_OneSidedClipVelocity( vec3_t in, vec3_t normal, vec3_t out, float overbounce )
+{
+	float	backoff;
+	float	change;
+	int		i;
+
+	backoff = DotProduct (in, normal);
+
+	if ( backoff < 0 ) {
+		backoff *= overbounce;
+	}
+	else {
+		backoff = 0;
+	}
+
+	for ( i=0 ; i<3 ; i++ ) {
+		change = normal[i]*backoff;
+		out[i] = in[i] - change;
+	}
+}
+
 
 /*
 ==================
@@ -454,9 +482,6 @@ static void PM_DoJump( void )
 	if ( !pml.walking )
 		return;
 
-	// Kill overbounce post jump.
-	pm->ps->stats[STAT_OVERBOUNCE] &= ~(1<<OB_DOOB);
-
 	// Ramp boost
 	// I can't believe that this is all that is required.
 	// All the hard work is done by PM_ClipVelocity!
@@ -480,6 +505,7 @@ static void PM_DoJump( void )
 	pml.walking = qfalse;
 	pml.wallPlane = qfalse;
 	pm->ps->pm_flags |= PMF_JUMP_HELD;
+	pm->ps->stats[STAT_BUTTONS] &= ~(1<<BUTTON_CROUCH);
 
 	pm->ps->groundEntityNum = ENTITYNUM_NONE;
 
@@ -502,6 +528,8 @@ PM_CheckJump
 */
 static qboolean PM_CheckJump( void ) {
 
+	PM_GroundTrace();
+
 	if ( pm->ps->pm_flags & PMF_RESPAWNED ) {
 		return qfalse;		// don't allow jump until all buttons are up
 	}
@@ -523,7 +551,9 @@ static qboolean PM_CheckJump( void ) {
 		if (pml.groundPlane)
 			PM_ClipVelocity(pm->ps->velocity, pml.groundTrace.plane.normal, pm->ps->velocity, OVERCLIP);
 	}
-	PM_GroundTrace();
+
+	// Kill overbounce post jump.
+	pm->ps->stats[STAT_OVERBOUNCE] &= ~(1<<OB_DOOB);
 
 	if (movecfg.quakejump)
 		return qtrue;
@@ -702,6 +732,9 @@ static void PM_FlyMove( void )
 	vec3_t	wishdir;
 	float	scale;
 
+	if ((pm->cmd.upmove <= 0) && (pm->ps->stats[STAT_BUTTONS] & (1<<BUTTON_CROUCH)))
+		pm->cmd.upmove = -127;
+
 	// normal slowdown
 	PM_Friction ();
 
@@ -868,7 +901,10 @@ static void PM_AirMove( void )
 		PM_SlideMove ( qtrue );
 #endif
 
-	PM_StepSlideMove ( qtrue );
+	if (movecfg.quakesteps && !g_stepsmoothing.value)
+		PM_SlideMove( qtrue );
+	else
+		PM_StepSlideMove ( qtrue );
 
 	// Did we collide with the ground? No? Set the overbounce flag.
 	// zspeed and pm->ps->veloicty[2] are both negative in a fall.
@@ -1083,6 +1119,7 @@ static void PM_DeadMove( void )
 	// 	VectorNormalize (pm->ps->velocity);
 	// 	VectorScale (pm->ps->velocity, forward, pm->ps->velocity);
 	// }
+	pml.walking = qfalse;
 }
 
 
@@ -1570,9 +1607,12 @@ static void PM_CheckDuck (void)
 		return;
 	}
 
-	if (((pm->cmd.upmove < 0) && (pm->ps->stats[STAT_BUTTONS] & (1<<BUTTON_CROUCH))) || (pm->ps->stats[STAT_BUTTONS] & (1<<BUTTON_CROUCH))) {
+	if ((pm->cmd.upmove < 0) || (pm->ps->stats[STAT_BUTTONS] & (1<<BUTTON_CROUCH))) {
 		// duck
-		pm->ps->pm_flags |= PMF_DUCKED;
+		if (!(pm->ps->stats[STAT_PM_FLAGS] & (1<<PM_FLAG_CROUCH_HELD))) {
+			pm->ps->pm_flags |= PMF_DUCKED;
+			pm->ps->stats[STAT_PM_FLAGS] |= (1<<PM_FLAG_CROUCH_HELD);
+		}
 	}
 	else {
 		// stand up if possible
@@ -1584,6 +1624,7 @@ static void PM_CheckDuck (void)
 				pm->ps->pm_flags &= ~PMF_DUCKED;
 			}
 		}
+		pm->ps->stats[STAT_PM_FLAGS] &= ~(1<<PM_FLAG_CROUCH_HELD);
 	}
 
 	if (pm->ps->pm_flags & PMF_DUCKED) {
@@ -2508,11 +2549,12 @@ void BG_UpdateMovement( int mode ) {
 		movecfg.airaccelerate = 1;
 		// movecfg.strafeaccelerate =
 		movecfg.quakeramp = qfalse;
+		movecfg.quakesteps = qfalse;
 		movecfg.quakejump = qfalse;
 		movecfg.doublejump = qfalse;
 		movecfg.cpmkbd = qfalse;
 		movecfg.orikbd = qfalse;
-		movecfg.itempickupheight = 36;
+		movecfg.itempickupheight = 36;  // Does nothing.
 	break;
 	case MOVEMENT_QW:
 		movecfg.crouchfriction = 1;
@@ -2526,6 +2568,7 @@ void BG_UpdateMovement( int mode ) {
 		movecfg.airaccelerate = 10;
 		// movecfg.strafeaccelerate =
 		movecfg.quakeramp = qtrue;
+		movecfg.quakesteps = qtrue;
 		movecfg.quakejump = qtrue;
 		movecfg.doublejump = qfalse;
 		movecfg.cpmkbd = qfalse;
@@ -2544,6 +2587,7 @@ void BG_UpdateMovement( int mode ) {
 		movecfg.airaccelerate = 1;
 		movecfg.strafeaccelerate = 70;
 		movecfg.quakeramp = qfalse;
+		movecfg.quakesteps = qfalse;
 		movecfg.quakejump = qfalse;
 		movecfg.doublejump = qtrue;
 		movecfg.cpmkbd = qtrue;
@@ -2562,6 +2606,7 @@ void BG_UpdateMovement( int mode ) {
 		movecfg.airaccelerate = 1;
 		movecfg.strafeaccelerate = 106.7f;
 		movecfg.quakeramp = qfalse;
+		movecfg.quakesteps = qfalse;
 		movecfg.quakejump = qtrue;
 		movecfg.doublejump = qfalse;
 		movecfg.cpmkbd = qtrue;

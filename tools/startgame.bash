@@ -9,7 +9,12 @@ then
     DRI_PRIME=1 /usr/local/bin/quake3 +set fs_game $MOD +devmap $MAP +addbot orbb +addbot orbb +addbot orbb +addbot orbb
 elif [ "$ENGINE" = "openarena" ]
 then
-    oa +set fs_game $MOD +devmap $MAP
+	if [ "$MAP" = "startgame" ]
+	then
+		oa +set fs_game $MOD +exec autoexec.cfg
+	else
+		oa +set fs_game $MOD +devmap $MAP +exec autoexec.cfg
+	fi
 #	DRI_PRIME=1 SDL_VIDEO_FULLSCREEN_HEAD=0 SDL_VIDEO_X11_DGAMOUSE=0 /usr/local/games/openarena/openarena.x86_64 +set fs_game $MOD +devmap $MAP
 #	killall kwin_x11
 #	kwin_x11 --replace &> /dev/null &

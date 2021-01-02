@@ -339,7 +339,7 @@ void ProximityMine_RemoveAll()
 G_MissileImpact
 ================
 */
-void G_MissileImpact( gentity_t *ent, trace_t *trace )
+void G_MissileImpact( gentity_t *ent, trace_t *trace, qboolean allowExplosion )
 {
 	gentity_t		*other;
 	qboolean		hitClient = qfalse;
@@ -354,6 +354,9 @@ void G_MissileImpact( gentity_t *ent, trace_t *trace )
 		G_AddEvent( ent, EV_GRENADE_BOUNCE, 0 );
 		return;
 	}
+
+	if (!allowExplosion)
+		return;
 
 	if ( other->takedamage ) {
 		if ( ent->s.weapon != WP_PROX_LAUNCHER ) {
@@ -527,7 +530,7 @@ qboolean G_MissileTouchTriggers( gentity_t *ent ) {
 	gentity_t	*hit;
 	trace_t		trace;
 	vec3_t		mins, maxs;
-	static vec3_t	range = { 5, 5, 5 };
+	static vec3_t	range = { 10, 10, 10 };
 	qboolean	triggered = qfalse;
 
 	VectorSubtract( ent->r.currentOrigin, range, mins );
@@ -563,22 +566,21 @@ qboolean G_MissileTouchTriggers( gentity_t *ent ) {
 
 		memset( &trace, 0, sizeof(trace) );
 
-		if ( hit->touch ) {
+		if ( hit->touch &&
+		   ( !Q_strncmp(hit->classname, "trigger_teleport", sizeof("trigger_teleport")) ||
+		     !Q_strncmp(hit->classname, "trigger_push", sizeof("trigger_push")) ) ) {
+
 			hit->touch (hit, ent, &trace);
+			// if (!Q_strncmp(hit->classname, "trigger_teleport", sizeof("trigger_teleport")))
 			triggered = qtrue;
 		}
 
-		if ( ( ent->r.svFlags & SVF_BOT ) && ( ent->touch ) ) {
-			ent->touch( ent, hit, &trace );
-			triggered = qtrue;
-		}
+		// if ( ( ent->r.svFlags & SVF_BOT ) && ( ent->touch ) ) {
+		// 	ent->touch( ent, hit, &trace );
+		// 	triggered = qtrue;
+		// }
 	}
 
-	// // if we didn't touch a jump pad this pmove frame
-	// if ( ent->client->ps.jumppad_frame != ent->client->ps.pmove_framecount ) {
-	// 	ent->client->ps.jumppad_frame = 0;
-	// 	ent->client->ps.jumppad_ent = 0;
-	// }
 	return triggered;
 }
 
@@ -592,6 +594,7 @@ void G_RunMissile( gentity_t *ent )
 	vec3_t		origin;
 	trace_t		tr;
 	int			passent;
+	qboolean	allowExplosion = qtrue;
 
 	// get current position
 	BG_EvaluateTrajectory( &ent->s.pos, level.time, origin );
@@ -601,7 +604,7 @@ void G_RunMissile( gentity_t *ent )
 		passent = ent->target_ent->s.number;
 	}
 	// prox mines that left the owner bbox will attach to anything, even the owner
-	else if (ent->s.weapon == WP_PROX_LAUNCHER && ent->count) {
+	else if ((ent->s.weapon == WP_PROX_LAUNCHER && ent->count) || (ent->r.svFlags & SVF_NOPASSENT)) {
 		passent = ENTITYNUM_NONE;
 	}
 	else {
@@ -622,9 +625,8 @@ void G_RunMissile( gentity_t *ent )
 
 	trap_LinkEntity( ent );
 
-	if (g_teleportprojectiles.value)
-		if (G_MissileTouchTriggers( ent ))
-			return;
+	if (g_missiletriggers.value && (ent->s.weapon != WP_PROX_LAUNCHER))
+		allowExplosion = !G_MissileTouchTriggers( ent );
 
 	if ( tr.fraction != 1 ) {
 		// never explode or bounce on sky
@@ -636,7 +638,7 @@ void G_RunMissile( gentity_t *ent )
 			G_FreeEntity( ent );
 			return;
 		}
-		G_MissileImpact( ent, &tr );
+		G_MissileImpact( ent, &tr, allowExplosion );
 		if ( ent->s.eType != ET_MISSILE ) {
 			return;		// exploded
 		}
@@ -692,7 +694,7 @@ gentity_t *fire_plasma (gentity_t *self, vec3_t start, vec3_t dir)
 	bolt->s.pos.trType = TR_LINEAR;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
-	VectorScale( dir, 2000, bolt->s.pos.trDelta );
+	VectorScale( dir, 2000 + DotProduct(self->client->ps.velocity, dir), bolt->s.pos.trDelta );
 	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
 
 	VectorCopy (start, bolt->r.currentOrigin);
@@ -739,7 +741,7 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir)
 	bolt->s.pos.trType = TR_GRAVITY;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
-	VectorScale( dir, 700, bolt->s.pos.trDelta );
+	VectorScale( dir, 700 + DotProduct(self->client->ps.velocity, dir), bolt->s.pos.trDelta );
 	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
 
 	VectorCopy (start, bolt->r.currentOrigin);
@@ -785,7 +787,7 @@ gentity_t *fire_bfg (gentity_t *self, vec3_t start, vec3_t dir)
 	bolt->s.pos.trType = TR_LINEAR;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
-	VectorScale( dir, 2000, bolt->s.pos.trDelta );
+	VectorScale( dir, 2000 + DotProduct(self->client->ps.velocity, dir), bolt->s.pos.trDelta );
 	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
 	VectorCopy (start, bolt->r.currentOrigin);
 
@@ -830,7 +832,7 @@ gentity_t *fire_rocket (gentity_t *self, vec3_t start, vec3_t dir)
 	bolt->s.pos.trType = TR_LINEAR;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
-	VectorScale( dir, 900, bolt->s.pos.trDelta );
+	VectorScale( dir, 900 + DotProduct(self->client->ps.velocity, dir), bolt->s.pos.trDelta );
 	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
 	VectorCopy (start, bolt->r.currentOrigin);
 
@@ -887,7 +889,7 @@ gentity_t *fire_grapple (gentity_t *self, vec3_t start, vec3_t dir)
 //unlagged - grapple
 	hook->s.otherEntityNum = self->s.number; // use to match beam in client
 	VectorCopy( start, hook->s.pos.trBase );
-	VectorScale( dir, 800, hook->s.pos.trDelta );
+	VectorScale( dir, 800 + DotProduct(self->client->ps.velocity, dir), hook->s.pos.trDelta );
 	SnapVector( hook->s.pos.trDelta );			// save net bandwidth
 	VectorCopy (start, hook->r.currentOrigin);
 
@@ -942,7 +944,7 @@ gentity_t *fire_nail( gentity_t *self, vec3_t start, vec3_t forward, vec3_t righ
 	VectorSubtract( end, start, dir );
 	VectorNormalize( dir );
 
-	scale = 555 + random() * 1800;
+	scale = 555 + random() * 1800 + DotProduct(self->client->ps.velocity, dir);
 	VectorScale( dir, scale, bolt->s.pos.trDelta );
 	SnapVector( bolt->s.pos.trDelta );
 
@@ -994,7 +996,7 @@ gentity_t *fire_prox( gentity_t *self, vec3_t start, vec3_t dir )
 	bolt->s.pos.trType = TR_GRAVITY;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
-	VectorScale( dir, 700, bolt->s.pos.trDelta );
+	VectorScale( dir, 700 + DotProduct(self->client->ps.velocity, dir), bolt->s.pos.trDelta );
 	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
 
 	VectorCopy (start, bolt->r.currentOrigin);

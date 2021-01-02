@@ -749,6 +749,7 @@ void trigger_teleporter_touch (gentity_t *self, gentity_t *other, trace_t *trace
 //
 // g_misc.c
 //
+void BG_MissileTouchJumpPad( gentity_t *missile, entityState_t *jumppad );
 void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles );
 void TeleportMissile( gentity_t *missile, vec3_t origin, vec3_t angles );
 void TeleportEntity( gentity_t *player, vec3_t origin, vec3_t angles );
@@ -1188,7 +1189,7 @@ extern vmCvar_t g_movement;
 extern vmCvar_t g_rampjump;
 extern vmCvar_t g_stepsmoothing;
 extern vmCvar_t g_upstep;
-extern vmCvar_t g_teleportprojectiles;
+extern vmCvar_t g_missiletriggers;
 extern vmCvar_t g_overbounce;
 extern vmCvar_t g_excessiveoverbounce;
 extern vmCvar_t g_autojump;

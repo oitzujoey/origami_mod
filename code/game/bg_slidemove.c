@@ -243,6 +243,7 @@ PM_StepSlideMove
 */
 void PM_StepSlideMove( qboolean gravity ) {
 	vec3_t		start_o, start_v;
+	vec3_t      end_o, end_v;
 #if 0
 	vec3_t		down_o, down_v;
 #endif
@@ -259,6 +260,9 @@ void PM_StepSlideMove( qboolean gravity ) {
 		return;		// we got exactly where we wanted to go first try	
 	}
 
+	VectorCopy (pm->ps->origin, end_o);
+	VectorCopy (pm->ps->velocity, end_v);
+	
 	if ( g_stepsmoothing.integer ) {
 		VectorCopy (start_o, pm->ps->origin);
 		VectorCopy (start_v, pm->ps->velocity);
@@ -272,8 +276,11 @@ void PM_StepSlideMove( qboolean gravity ) {
 		// never step up when you still have up velocity
 		if ( pm->ps->velocity[2] > 0 && (trace.fraction == 1.0 ||
 											DotProduct(trace.plane.normal, up) < 0.7)) {
-			if ( g_stepsmoothing.integer )
-				PM_SlideMove( gravity );
+			if ( g_stepsmoothing.integer ) {
+				// Step was unsuccessful, so reset to the original move.
+				VectorCopy (end_o, pm->ps->origin);
+				VectorCopy (end_v, pm->ps->velocity);
+			}
 			return;
 		}
 	}
@@ -293,8 +300,8 @@ void PM_StepSlideMove( qboolean gravity ) {
 		if ( pm->debugLevel ) {
 			Com_Printf("%i:bend can't step\n", c_pmove);
 		}
-		if ( g_stepsmoothing.integer )
-			PM_SlideMove( gravity );
+		// if ( g_stepsmoothing.integer )
+		// 	PM_SlideMove( gravity );
 		return;		// can't step up
 	}
 
@@ -303,7 +310,12 @@ void PM_StepSlideMove( qboolean gravity ) {
 	VectorCopy (trace.endpos, pm->ps->origin);
 	VectorCopy (start_v, pm->ps->velocity);
 
-	PM_SlideMove( gravity );
+	if ( PM_SlideMove( gravity ) != 0 && g_stepsmoothing.integer ) {
+		// Step was unsuccessful, so reset to the original move.
+		VectorCopy (end_o, pm->ps->origin);
+		VectorCopy (end_v, pm->ps->velocity);
+		return;
+	}
 
 	// push down the final amount
 	VectorCopy (pm->ps->origin, down);
@@ -312,8 +324,11 @@ void PM_StepSlideMove( qboolean gravity ) {
 	if ( !trace.allsolid ) {
 		VectorCopy (trace.endpos, pm->ps->origin);
 	}
-	if ( !g_stepsmoothing.integer ) {
-		if ( trace.fraction < 1.0 ) {
+	if ( trace.fraction < 1.0 ) {
+		if ( g_upstep.integer || g_stepsmoothing.integer ) {
+			PM_OneSidedClipVelocity( pm->ps->velocity, trace.plane.normal, pm->ps->velocity, OVERCLIP );
+		}
+		else {
 			PM_ClipVelocity( pm->ps->velocity, trace.plane.normal, pm->ps->velocity, OVERCLIP );
 		}
 	}
