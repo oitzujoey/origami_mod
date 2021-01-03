@@ -1188,7 +1188,6 @@ extern vmCvar_t g_bot_noChat;
 extern vmCvar_t g_movement;
 extern vmCvar_t g_rampjump;
 extern vmCvar_t g_stepsmoothing;
-extern vmCvar_t g_upstep;
 extern vmCvar_t g_missiletriggers;
 extern vmCvar_t g_overbounce;
 extern vmCvar_t g_excessiveoverbounce;

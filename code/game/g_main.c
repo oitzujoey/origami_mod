@@ -200,7 +200,6 @@ vmCvar_t g_movement;
 vmCvar_t g_missiletriggers;
 vmCvar_t g_rampjump;
 vmCvar_t g_stepsmoothing;
-vmCvar_t g_upstep;
 vmCvar_t g_overbounce;
 vmCvar_t g_excessiveoverbounce;
 vmCvar_t g_autojump;
@@ -425,7 +424,6 @@ static cvarTable_t gameCvarTable[] = {
 	{ &g_movement, "g_movement", "0", CVAR_ARCHIVE | CVAR_SERVERINFO, 0, qtrue},
 	{ &g_rampjump, "g_rampjump", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_stepsmoothing, "g_stepsmoothing", "0", CVAR_ARCHIVE, 0, qtrue},
-	{ &g_upstep, "g_upstep", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_missiletriggers, "g_missiletriggers", "0", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_overbounce, "g_overbounce", "1", CVAR_ARCHIVE, 0, qtrue},
 	{ &g_excessiveoverbounce, "g_excessiveoverbounce", "0", CVAR_ARCHIVE | CVAR_SERVERINFO, 0, qtrue},

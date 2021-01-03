@@ -243,7 +243,6 @@ PM_StepSlideMove
 */
 void PM_StepSlideMove( qboolean gravity ) {
 	vec3_t		start_o, start_v;
-	vec3_t      end_o, end_v;
 #if 0
 	vec3_t		down_o, down_v;
 #endif
@@ -260,15 +259,7 @@ void PM_StepSlideMove( qboolean gravity ) {
 		return;		// we got exactly where we wanted to go first try	
 	}
 
-	VectorCopy (pm->ps->origin, end_o);
-	VectorCopy (pm->ps->velocity, end_v);
-	
-	if ( g_stepsmoothing.integer ) {
-		VectorCopy (start_o, pm->ps->origin);
-		VectorCopy (start_v, pm->ps->velocity);
-	}
-
-	if ( !g_upstep.integer ) {
+	if ( !g_stepsmoothing.integer ) {
 		VectorCopy(start_o, down);
 		down[2] -= STEPSIZE;
 		pm->trace (&trace, start_o, pm->mins, pm->maxs, down, pm->ps->clientNum, pm->tracemask);
@@ -276,11 +267,6 @@ void PM_StepSlideMove( qboolean gravity ) {
 		// never step up when you still have up velocity
 		if ( pm->ps->velocity[2] > 0 && (trace.fraction == 1.0 ||
 											DotProduct(trace.plane.normal, up) < 0.7)) {
-			if ( g_stepsmoothing.integer ) {
-				// Step was unsuccessful, so reset to the original move.
-				VectorCopy (end_o, pm->ps->origin);
-				VectorCopy (end_v, pm->ps->velocity);
-			}
 			return;
 		}
 	}
@@ -310,13 +296,8 @@ void PM_StepSlideMove( qboolean gravity ) {
 	VectorCopy (trace.endpos, pm->ps->origin);
 	VectorCopy (start_v, pm->ps->velocity);
 
-	if ( PM_SlideMove( gravity ) != 0 && g_stepsmoothing.integer ) {
-		// Step was unsuccessful, so reset to the original move.
-		VectorCopy (end_o, pm->ps->origin);
-		VectorCopy (end_v, pm->ps->velocity);
-		return;
-	}
-
+	PM_SlideMove( gravity );
+	
 	// push down the final amount
 	VectorCopy (pm->ps->origin, down);
 	down[2] -= stepSize;
@@ -325,7 +306,7 @@ void PM_StepSlideMove( qboolean gravity ) {
 		VectorCopy (trace.endpos, pm->ps->origin);
 	}
 	if ( trace.fraction < 1.0 ) {
-		if ( g_upstep.integer || g_stepsmoothing.integer ) {
+		if ( g_stepsmoothing.integer ) {
 			PM_OneSidedClipVelocity( pm->ps->velocity, trace.plane.normal, pm->ps->velocity, OVERCLIP );
 		}
 		else {
