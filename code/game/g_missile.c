@@ -694,7 +694,11 @@ gentity_t *fire_plasma (gentity_t *self, vec3_t start, vec3_t dir)
 	bolt->s.pos.trType = TR_LINEAR;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
-	VectorScale( dir, 2000 + DotProduct(self->client->ps.velocity, dir), bolt->s.pos.trDelta );
+	VectorScale( dir, 2000, bolt->s.pos.trDelta );
+	if (g_relativeProjectiles.integer) {
+		bolt->s.pos.trDelta[0] += self->client->ps.velocity[0];
+		bolt->s.pos.trDelta[1] += self->client->ps.velocity[1];
+	}
 	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
 
 	VectorCopy (start, bolt->r.currentOrigin);
@@ -741,7 +745,11 @@ gentity_t *fire_grenade (gentity_t *self, vec3_t start, vec3_t dir)
 	bolt->s.pos.trType = TR_GRAVITY;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
-	VectorScale( dir, 700 + DotProduct(self->client->ps.velocity, dir), bolt->s.pos.trDelta );
+	VectorScale( dir, 700, bolt->s.pos.trDelta );
+	if (g_relativeProjectiles.integer) {
+		bolt->s.pos.trDelta[0] += self->client->ps.velocity[0];
+		bolt->s.pos.trDelta[1] += self->client->ps.velocity[1];
+	}
 	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
 
 	VectorCopy (start, bolt->r.currentOrigin);
@@ -787,7 +795,11 @@ gentity_t *fire_bfg (gentity_t *self, vec3_t start, vec3_t dir)
 	bolt->s.pos.trType = TR_LINEAR;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
-	VectorScale( dir, 2000 + DotProduct(self->client->ps.velocity, dir), bolt->s.pos.trDelta );
+	VectorScale( dir, 2000, bolt->s.pos.trDelta );
+	if (g_relativeProjectiles.integer) {
+		bolt->s.pos.trDelta[0] += self->client->ps.velocity[0];
+		bolt->s.pos.trDelta[1] += self->client->ps.velocity[1];
+	}
 	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
 	VectorCopy (start, bolt->r.currentOrigin);
 
@@ -832,7 +844,11 @@ gentity_t *fire_rocket (gentity_t *self, vec3_t start, vec3_t dir)
 	bolt->s.pos.trType = TR_LINEAR;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
-	VectorScale( dir, 900 + DotProduct(self->client->ps.velocity, dir), bolt->s.pos.trDelta );
+	VectorScale( dir, 900, bolt->s.pos.trDelta );
+	if (g_relativeProjectiles.integer) {
+		bolt->s.pos.trDelta[0] += self->client->ps.velocity[0];
+		bolt->s.pos.trDelta[1] += self->client->ps.velocity[1];
+	}
 	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
 	VectorCopy (start, bolt->r.currentOrigin);
 
@@ -889,7 +905,11 @@ gentity_t *fire_grapple (gentity_t *self, vec3_t start, vec3_t dir)
 //unlagged - grapple
 	hook->s.otherEntityNum = self->s.number; // use to match beam in client
 	VectorCopy( start, hook->s.pos.trBase );
-	VectorScale( dir, 800 + DotProduct(self->client->ps.velocity, dir), hook->s.pos.trDelta );
+	VectorScale( dir, 800, hook->s.pos.trDelta );
+	if (g_relativeProjectiles.integer) {
+		hook->s.pos.trDelta[0] += self->client->ps.velocity[0];
+		hook->s.pos.trDelta[1] += self->client->ps.velocity[1];
+	}
 	SnapVector( hook->s.pos.trDelta );			// save net bandwidth
 	VectorCopy (start, hook->r.currentOrigin);
 
@@ -944,8 +964,12 @@ gentity_t *fire_nail( gentity_t *self, vec3_t start, vec3_t forward, vec3_t righ
 	VectorSubtract( end, start, dir );
 	VectorNormalize( dir );
 
-	scale = 555 + random() * 1800 + DotProduct(self->client->ps.velocity, dir);
+	scale = 555 + random() * 1800;
 	VectorScale( dir, scale, bolt->s.pos.trDelta );
+	if (g_relativeProjectiles.integer) {
+		bolt->s.pos.trDelta[0] += self->client->ps.velocity[0];
+		bolt->s.pos.trDelta[1] += self->client->ps.velocity[1];
+	}
 	SnapVector( bolt->s.pos.trDelta );
 
 	VectorCopy( start, bolt->r.currentOrigin );
@@ -996,7 +1020,11 @@ gentity_t *fire_prox( gentity_t *self, vec3_t start, vec3_t dir )
 	bolt->s.pos.trType = TR_GRAVITY;
 	bolt->s.pos.trTime = level.time - MISSILE_PRESTEP_TIME;		// move a bit on the very first frame
 	VectorCopy( start, bolt->s.pos.trBase );
-	VectorScale( dir, 700 + DotProduct(self->client->ps.velocity, dir), bolt->s.pos.trDelta );
+	VectorScale( dir, 700, bolt->s.pos.trDelta );
+	if (g_relativeProjectiles.integer) {
+		bolt->s.pos.trDelta[0] += self->client->ps.velocity[0];
+		bolt->s.pos.trDelta[1] += self->client->ps.velocity[1];
+	}
 	SnapVector( bolt->s.pos.trDelta );			// save net bandwidth
 
 	VectorCopy (start, bolt->r.currentOrigin);

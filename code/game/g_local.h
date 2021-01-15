@@ -1192,6 +1192,7 @@ extern vmCvar_t g_missiletriggers;
 extern vmCvar_t g_overbounce;
 extern vmCvar_t g_excessiveoverbounce;
 extern vmCvar_t g_autojump;
+extern vmCvar_t g_relativeProjectiles;
 
 void	trap_Printf( const char *fmt );
 void	trap_Error( const char *fmt ) __attribute__((noreturn));

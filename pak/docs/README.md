@@ -11,6 +11,7 @@
 | int | g_movement | Server, Client | 0 | Select movement rules. |
 | bool | g_rampjump | Server, Client | 0 | Allow accumulative jumps. |
 | bool | g_stepsmoothing | Server, Client | 0 | Make accent up stairs easier. |
+| bool | g_relativeProjectiles | Server | 0 | Set launch velocity of projectiles relative to the player. |
 
 | Command | Effect |
 |-|-|
